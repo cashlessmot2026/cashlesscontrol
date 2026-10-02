@@ -130,7 +130,7 @@ const DB={
   async set(t,id,d){const s=tbl(t);const m={...(s.rows[id]||{}),...d};delete m.id;s.rows[id]={...m,id};emit(t);
     const {error}=await sb.from(t).upsert({id,data:m});if(error)window.__err&&window.__err(error.message)},
   async many(t,list){const s=tbl(t);list.forEach(([id,d])=>{s.rows[id]={...d,id}});emit(t);
-    const {error}=await sb.from(t).upsert(list.map(([id,d])=>{const x={...d};delete x.id;return{id,data:x}}));if(error)window.__err&&window.__err(error.message)},
+    const {error}=await sb.from(t).upsert(list.map(([id,d])=>{const x={...d};delete x.id;return{id,data:x}}));if(error){window.__err&&window.__err(error.message);return error.message}},
   async del(t,id){const s=tbl(t);delete s.rows[id];emit(t);await sb.from(t).delete().eq('id',id)},
 };
 function useCol(t){
@@ -278,13 +278,28 @@ function RoomCard({r,children,onClick}){
 }
 function AdminRooms(){
   const {rooms,users,notify,msg}=useC();
-  const [a,setA]=useState(''),[b,setB]=useState(''),[asg,setAsg]=useState(null),[qr,setQr]=useState(null);
+  const [txt,setTxt]=useState(''),[asg,setAsg]=useState(null),[qr,setQr]=useState(null),[busy,setBusy]=useState(false);
   const aseo=users.filter(u=>u.role==='aseo');
-  const addRooms=()=>{const x=+a,y=+(b||a);if(!x||y<x||y-x>300)return msg('Rango inválido');DB.many('rooms',Array.from({length:y-x+1},(_,i)=>['h'+(x+i),{number:String(x+i),status:'disponible',assignedTo:[]}]).filter(([id])=>!rooms.find(r=>r.id===id)));setA('');setB('')};
+  /* acepta: 101   |   101-120   |   101-110, 201, 305   |   A1, A2 */
+  const addRooms=async()=>{
+    const names=[];let tooBig=false;
+    txt.split(/[,;\n]+/).map(t=>t.trim()).filter(Boolean).forEach(tok=>{
+      const m=/^(\d+)\s*(?:-|–|a|al|hasta)\s*(\d+)$/i.exec(tok);
+      if(m){let x=+m[1],y=+m[2];if(y<x)[x,y]=[y,x];if(y-x>300){tooBig=true;return}for(let n=x;n<=y;n++)names.push(String(n))}else names.push(tok)});
+    if(tooBig)return msg('Máximo 300 habitaciones por rango');
+    const uniq=[...new Set(names)];
+    if(!uniq.length)return msg('Escribe los números, ej: 101-120 o 101, 102, 205');
+    const fresh=uniq.filter(n=>!rooms.find(r=>r.number===n));
+    if(!fresh.length)return msg('Esas habitaciones ya existen');
+    setBusy(true);
+    const err=await DB.many('rooms',fresh.map(n=>['h'+n.replace(/[^\w-]+/g,'_'),{number:n,status:'disponible',assignedTo:[]}]));
+    setBusy(false);
+    if(err)return msg('No se pudieron crear: '+err);
+    setTxt('');msg('✔ '+fresh.length+' habitación(es) creada(s)'+(uniq.length>fresh.length?' ('+(uniq.length-fresh.length)+' ya existían)':''));};
   const release=r=>{DB.set('rooms',r.id,{status:'limpieza',releasedAt:Date.now(),startedAt:null});notify({dept:'aseo',loud:true,text:`Habitación ${r.number} liberada — ¡a limpiar!`,targets:r.assignedTo||[]});msg('Liberada: alerta enviada al personal de aseo')};
   const sorted=[...rooms].sort((x,y)=>x.number.localeCompare(y.number,undefined,{numeric:true}));
   return <div>
-    <div className="row" style={{marginBottom:10}}><b>Agregar habitaciones</b><input style={{width:90}} placeholder="Desde" value={a} onChange={e=>setA(e.target.value)} inputMode="numeric"/><input style={{width:90}} placeholder="Hasta" value={b} onChange={e=>setB(e.target.value)} inputMode="numeric"/><Btn sm c="var(--gr)" onClick={addRooms}>＋ Crear</Btn>
+    <div className="row" style={{marginBottom:10}}><b>Agregar habitaciones</b><input style={{width:260,maxWidth:'100%'}} placeholder="Ej: 101-120, 201, 305" value={txt} onChange={e=>setTxt(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addRooms()}/><Btn sm c="var(--gr)" disabled={busy} onClick={addRooms}>{busy?'Creando…':'＋ Crear'}</Btn>
       <span className="sp"/>{Object.entries(ST).map(([k,s])=><Chip key={k} c={s.c}>{s.l}: {rooms.filter(r=>r.status===k).length}</Chip>)}</div>
     {!rooms.length&&<p className="muted">Crea habitaciones con el rango de números (ej. 101 a 120).</p>}
     <div className="grid">{sorted.map(r=><RoomCard key={r.id} r={r}>
@@ -579,10 +594,10 @@ function RouteForm({onClose}){
 }
 
 /* ============ ENTREGAS: panel admin ============ */
-function DeliveriesAdmin({setGhost}){
+function DeliveriesAdmin({setGhost,map}){
   const {routes,invoices,users,geo}=useC();const [sub,setSub]=useState('rutas'),[form,setForm]=useState(false),[sel,setSel]=useState('');
   useEffect(()=>{setGhost(sub==='mapa');return()=>setGhost(false)},[sub]);
-  const subs=[['rutas','🛣 Rutas'],['cuadre','🧾 Cuadre'],['stats','📈 Estadísticas'],['personal','👥 Conductores/Aux.'],['mapa','🗺 Mapa en vivo']];
+  const subs=[['rutas','🛣 Rutas'],['cuadre','🧾 Cuadre'],['stats','📈 Estadísticas'],['personal','👥 Conductores/Aux.'],...(map?[['mapa','🗺 Mapa en vivo']]:[])];
   return <div><div className="row" style={{marginBottom:10}}>{subs.map(([k,l])=><Btn key={k} sm c={sub===k?'var(--mg)':'var(--bl)'} onClick={()=>setSub(k)}>{l}</Btn>)}</div>
     {sub==='rutas'&&<><Btn c="var(--gr)" onClick={()=>setForm(true)}>＋ Nueva ruta</Btn><div className="grid2" style={{marginTop:12}}>{[...routes].sort((a,b)=>(b.created||0)-(a.created||0)).map(r=>{const l=invoices.filter(i=>i.routeId===r.id),d=l.filter(i=>DONE.includes(i.status)).length;
       return <div key={r.id} className="glass"><div className="row"><b className="sp">{r.name}</b><Chip c={r.status==='finalizada'?'var(--gr)':r.status==='en_ruta'?'var(--bl)':'#94a3b8'}>{r.status==='en_ruta'?'En ruta':r.status==='finalizada'?'Finalizada':'Asignada'}</Chip></div>
@@ -653,13 +668,13 @@ function AdminApp(){
   const {rooms,tasks,works,routes,invoices,users}=useC();
   const tabs=[['resumen','📊 Resumen'],['hab','🛏 Habitaciones'],['aseo','⏱ Tiempos aseo'],['mant','🔧 Mantenimiento'],['ent','🚚 Entregas'],['personal','👥 Personal'],['chat','💬 Chat'],['alertas','🔔 Alertas'],['qr','🔳 QR']];
   const mapTab=tab==='ent';
-  return <><MapBG/><div className={'adminlayer'+(ghost&&mapTab?' ghost':'')}>
+  return <><div className="adminlayer">
     <TopBar title="Administrador General" tabs={tabs} tab={tab} setTab={setTab}/>
-    <div className="wrap"><div className="glass" style={{background:tab==='ent'?'#0b1220b0':'#111827ec',backdropFilter:'blur(5px)'}}>
+    <div className="wrap"><div className="glass">
     {tab==='resumen'&&<><h3>Panorama general</h3><div className="grid"><Stat c="#6bb58c" v={rooms.filter(r=>r.status==='disponible').length} l="Habitaciones disponibles"/><Stat c="#d27b7b" v={rooms.filter(r=>r.status==='limpieza').length} l="Por limpiar"/><Stat c="#d4a85f" v={rooms.filter(r=>r.status==='proceso').length} l="En limpieza"/><Stat c="#6b95d1" v={rooms.filter(r=>r.status==='ocupada').length} l="Ocupadas"/><Stat c="var(--am)" v={tasks.filter(t=>t.status!=='completada').length} l="Tareas de mantenimiento abiertas"/><Stat c="var(--cy)" v={works.length} l="Obras"/><Stat c="var(--bl)" v={routes.filter(r=>r.status==='en_ruta').length} l="Rutas en curso"/><Stat c="var(--gr)" v={invoices.filter(i=>DONE.includes(i.status)).length+'/'+invoices.length} l="Facturas entregadas"/><Stat c="var(--mg)" v={users.filter(u=>u.role!=='admin').length} l="Personal registrado"/></div></>}
     {tab==='hab'&&<AdminRooms/>}{tab==='aseo'&&<CleaningStats/>}
     {tab==='mant'&&<><MaintOverview/><h3 style={{marginTop:16}}>Tareas</h3><TasksView readOnly/><h3 style={{marginTop:16}}>Obras</h3><WorksView readOnly/></>}
-    {tab==='ent'&&<DeliveriesAdmin setGhost={setGhost}/>}
+    {tab==='ent'&&<DeliveriesAdmin setGhost={setGhost} map={false}/>}
     {tab==='personal'&&<Workers roles={['aseo','mantenimiento','sistemas','maint_admin','deliv_admin','driver','aux']}/>}
     {tab==='chat'&&<Chat/>}{tab==='alertas'&&<Alerts/>}{tab==='qr'&&<QRSheet/>}
     </div></div></div></>;
@@ -673,7 +688,7 @@ function DelivAdminApp(){
   return <><MapBG/><div className={'adminlayer'+(ghost&&tab==='ent'?' ghost':'')}>
     <TopBar title="Admin de Entregas" tabs={[['ent','🚚 Entregas'],['alertas','🔔 Alertas']]} tab={tab} setTab={setTab}/>
     <div className="wrap"><div className="glass" style={{background:tab==='ent'?'#0b1220b0':'#111827ec',backdropFilter:'blur(5px)'}}>
-      {tab==='ent'&&<><div className="grid" style={{marginBottom:14}}><Stat c="var(--bl)" v={routes.filter(r=>r.status==='en_ruta').length} l="Rutas en curso"/><Stat c="var(--cy)" v={live.filter(v=>now-v.ts<30*60000).length} l="Vehículos en vivo"/><Stat c="var(--gr)" v={done.length+'/'+invoices.length} l="Facturas gestionadas"/><Stat c="var(--rd)" v={invoices.filter(i=>['total','parcial','novedad','reenvio'].includes(i.status)).length} l="Con novedad / devolución"/></div><DeliveriesAdmin setGhost={setGhost}/></>}
+      {tab==='ent'&&<><div className="grid" style={{marginBottom:14}}><Stat c="var(--bl)" v={routes.filter(r=>r.status==='en_ruta').length} l="Rutas en curso"/><Stat c="var(--cy)" v={live.filter(v=>now-v.ts<30*60000).length} l="Vehículos en vivo"/><Stat c="var(--gr)" v={done.length+'/'+invoices.length} l="Facturas gestionadas"/><Stat c="var(--rd)" v={invoices.filter(i=>['total','parcial','novedad','reenvio'].includes(i.status)).length} l="Con novedad / devolución"/></div><DeliveriesAdmin setGhost={setGhost} map={true}/></>}
       {tab==='alertas'&&<Alerts/>}
     </div></div></div></>;
 }
