@@ -70,7 +70,8 @@ grant execute on function public.app_login(text, text) to anon, authenticated;
 -- ---------------------------- Datos iniciales ------------------------
 insert into public.users (id, data) values
  ('admin', '{"name":"Administrador General","user":"admin","pin":"1234","role":"admin","active":true}'),
- ('jefe',  '{"name":"Jefe de Mantenimiento","user":"jefe","pin":"1234","role":"maint_admin","active":true}')
+ ('jefe',  '{"name":"Jefe de Mantenimiento","user":"jefe","pin":"1234","role":"maint_admin","active":true}'),
+ ('entregas','{"name":"Administrador de Entregas","user":"entregas","pin":"1234","role":"deliv_admin","active":true}')
 on conflict (id) do nothing;
 
 insert into public.catalog (id, data) values

@@ -148,7 +148,7 @@ const today=()=>new Date().toISOString().slice(0,10);
 const dfmt=ts=>ts?new Date(ts).toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'}):'—';
 const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const ROLE={admin:'Administrador',maint_admin:'Admin mantenimiento',aseo:'Aseo',mantenimiento:'Mantenimiento / Jardinería',sistemas:'Sistemas',driver:'Conductor',aux:'Auxiliar'};
+const ROLE={admin:'Administrador',maint_admin:'Admin mantenimiento',aseo:'Aseo',mantenimiento:'Mantenimiento / Jardinería',sistemas:'Sistemas',driver:'Conductor',aux:'Auxiliar',deliv_admin:'Admin entregas'};
 const ST={disponible:{c:'#22c55e',l:'Disponible'},ocupada:{c:'#3b82f6',l:'Ocupada'},limpieza:{c:'#ef4444',l:'Por limpiar'},proceso:{c:'#f59e0b',l:'En limpieza'}};
 const IST={pendiente:{c:'#94a3b8',l:'Pendiente'},ruta:{c:'#60a5fa',l:'En ruta'},ok:{c:'#22c55e',l:'Entregado OK'},novedad:{c:'#fbbf24',l:'Novedad'},parcial:{c:'#fb923c',l:'Devolución parcial'},total:{c:'#ef4444',l:'Devolución total'},reenvio:{c:'#c084fc',l:'Reenvío'}};
 const DONE=['ok','novedad','parcial','total','reenvio'];
@@ -189,8 +189,8 @@ function App(){
   useEffect(()=>{window.__err=m=>{setToast(m);setTimeout(()=>setToast(null),4000)}},[]);
   const msg=m=>{setToast(m);setTimeout(()=>setToast(null),3000)};
   const me=users.find(u=>u.id===meId);
-  const route=hash.startsWith('#admin/mantenimiento')?'maint_admin':hash.startsWith('#admin')?'admin':hash.startsWith('#servicio')?'aseo':hash.startsWith('#mantenimiento')?'mant':hash.startsWith('#entregas')?'entregas':'home';
-  const allowed={admin:['admin'],maint_admin:['maint_admin'],aseo:['aseo'],mant:['mantenimiento','sistemas'],entregas:['driver','aux']};
+  const route=hash.startsWith('#admin/mantenimiento')?'maint_admin':hash.startsWith('#admin/entregas')?'deliv_admin':hash.startsWith('#admin')?'admin':hash.startsWith('#servicio')?'aseo':hash.startsWith('#mantenimiento')?'mant':hash.startsWith('#entregas')?'entregas':'home';
+  const allowed={admin:['admin'],maint_admin:['maint_admin'],aseo:['aseo'],mant:['mantenimiento','sistemas'],entregas:['driver','aux'],deliv_admin:['deliv_admin']};
   const login=u=>{localStorage.setItem('cda_me',u.id);setMeId(u.id)};
   const logout=()=>{localStorage.removeItem('cda_me');setMeId(null);stopSiren()};
   const notify=n=>DB.set('notifs',uid(),{...n,ts:Date.now(),by:me?.id});
@@ -198,12 +198,12 @@ function App(){
   let body;
   if(route==='home')body=<Home/>;
   else if(!me||!allowed[route].includes(me.role))body=<Login route={route} allowed={allowed[route]} onLogin={login} me={me} logout={logout}/>;
-  else body=<Ctx.Provider value={ctx}><Shell>{route==='admin'?<AdminApp/>:route==='maint_admin'?<MaintAdminApp/>:route==='aseo'?<CleanApp hash={hash}/>:route==='mant'?<MaintWorker/>:<DeliveryApp/>}</Shell></Ctx.Provider>;
+  else body=<Ctx.Provider value={ctx}><Shell>{route==='admin'?<AdminApp/>:route==='deliv_admin'?<DelivAdminApp/>:route==='maint_admin'?<MaintAdminApp/>:route==='aseo'?<CleanApp hash={hash}/>:route==='mant'?<MaintWorker/>:<DeliveryApp/>}</Shell></Ctx.Provider>;
   return <>{body}{toast&&<div className="toast">{toast}</div>}</>;
 }
 
 function Home(){
-  const L=[['#servicio','🧹 Servicio / Aseo','var(--gr)'],['#mantenimiento','🔧 Mantenimiento y Jardinería','var(--am)'],['#entregas','🚚 Entregas','var(--bl)'],['#admin','👑 Administrador General','var(--mg)'],['#admin/mantenimiento','🛠 Admin Mantenimiento','var(--cy)']];
+  const L=[['#servicio','🧹 Servicio / Aseo','var(--gr)'],['#mantenimiento','🔧 Mantenimiento y Jardinería','var(--am)'],['#entregas','🚚 Entregas','var(--bl)'],['#admin','👑 Administrador General','var(--mg)'],['#admin/entregas','🗺 Admin Entregas','var(--bl)'],['#admin/mantenimiento','🛠 Admin Mantenimiento','var(--cy)']];
   return <div className="home"><div style={{fontSize:70,animation:'float 3s infinite'}}>🏨</div><h1>Control de Actividades</h1><p className="muted">Aseo · Mantenimiento · Sistemas · Entregas</p>
   <div className="row" style={{justifyContent:'center'}}>{L.map(([h,t,c])=><Btn key={h} big c={c} onClick={()=>{unlock();location.hash=h}}>{t}</Btn>)}</div><InstallBtn/></div>;
 }
@@ -212,7 +212,7 @@ function InstallBtn(){const [s,setS]=useState(0);useEffect(()=>{const i=setInter
 
 function Login({route,allowed,onLogin,me,logout}){
   const [u,setU]=useState(''),[p,setP]=useState(''),[busy,setBusy]=useState(false),[err,setErr]=useState('');
-  const titles={admin:'Administrador General',maint_admin:'Admin. Mantenimiento y Locativos',aseo:'Servicio / Aseo',mant:'Mantenimiento y Jardinería',entregas:'Entregas'};
+  const titles={admin:'Administrador General',maint_admin:'Admin. Mantenimiento y Locativos',aseo:'Servicio / Aseo',mant:'Mantenimiento y Jardinería',entregas:'Entregas',deliv_admin:'Admin. de Entregas'};
   const go=async e=>{e.preventDefault();unlock();setBusy(true);setErr('');
     const {data,error}=await sb.rpc('app_login',{p_user:u,p_pin:p});setBusy(false);
     if(error)return setErr('Error de conexión: '+error.message);
@@ -220,7 +220,7 @@ function Login({route,allowed,onLogin,me,logout}){
     if(!allowed.includes(data.role))return setErr('Este usuario no pertenece a esta sección');
     onLogin(data)};
   return <div className="home"><form className="glass" onSubmit={go} style={{width:'min(380px,92vw)'}}>
-    <div style={{fontSize:54,animation:'float 3s infinite'}}>{{admin:'👑',maint_admin:'🛠',aseo:'🧹',mant:'🔧',entregas:'🚚'}[route]}</div>
+    <div style={{fontSize:54,animation:'float 3s infinite'}}>{{admin:'👑',maint_admin:'🛠',aseo:'🧹',mant:'🔧',entregas:'🚚',deliv_admin:'🗺'}[route]}</div>
     <h2>{titles[route]}</h2>
     <F l="Usuario"><input value={u} onChange={e=>setU(e.target.value)} autoCapitalize="none" autoFocus/></F>
     <F l="Clave"><input type="password" value={p} onChange={e=>setP(e.target.value)} inputMode="text"/></F>
@@ -234,6 +234,7 @@ function Login({route,allowed,onLogin,me,logout}){
 function visible(n,me){
   if(n.by===me.id)return false;
   if(me.role==='admin')return !n.chat||n.toRole==='admin';
+  if(me.role==='deliv_admin')return n.dept==='entregas'&&!n.chat;
   if(n.chat)return n.toRole===me.role;
   if(n.toRole)return n.toRole===me.role;
   if(me.role==='maint_admin')return n.dept==='mantenimiento'||n.dept==='sistemas';
@@ -629,8 +630,21 @@ function AdminApp(){
     {tab==='hab'&&<AdminRooms/>}{tab==='aseo'&&<CleaningStats/>}
     {tab==='mant'&&<><MaintOverview/><h3 style={{marginTop:16}}>Tareas</h3><TasksView readOnly/><h3 style={{marginTop:16}}>Obras</h3><WorksView readOnly/></>}
     {tab==='ent'&&<DeliveriesAdmin setGhost={setGhost}/>}
-    {tab==='personal'&&<Workers roles={['aseo','mantenimiento','sistemas','maint_admin','driver','aux']}/>}
+    {tab==='personal'&&<Workers roles={['aseo','mantenimiento','sistemas','maint_admin','deliv_admin','driver','aux']}/>}
     {tab==='chat'&&<Chat/>}{tab==='alertas'&&<Alerts/>}{tab==='qr'&&<QRSheet/>}
+    </div></div></div>{tab==='ent'&&ghost&&<div style={{position:'relative',zIndex:3,padding:'0 14px'}}><LiveList/></div>}</>;
+}
+
+/* ============ App Admin de Entregas (propia interfaz) ============ */
+function DelivAdminApp(){
+  const [tab,setTab]=useState('ent'),[ghost,setGhost]=useState(false);
+  const {routes,invoices,live}=useC();const now=useNow();
+  const done=invoices.filter(i=>DONE.includes(i.status));
+  return <><MapBG/><div className={'adminlayer'+(ghost&&tab==='ent'?' ghost':'')}>
+    <TopBar title="Admin de Entregas" tabs={[['ent','🚚 Entregas'],['alertas','🔔 Alertas']]} tab={tab} setTab={setTab}/>
+    <div className="wrap"><div className="glass" style={{background:'#0f172ae6'}}>
+      {tab==='ent'&&<><div className="grid" style={{marginBottom:14}}><Stat c="var(--bl)" v={routes.filter(r=>r.status==='en_ruta').length} l="Rutas en curso"/><Stat c="var(--cy)" v={live.filter(v=>now-v.ts<30*60000).length} l="Vehículos en vivo"/><Stat c="var(--gr)" v={done.length+'/'+invoices.length} l="Facturas gestionadas"/><Stat c="var(--rd)" v={invoices.filter(i=>['total','parcial','novedad','reenvio'].includes(i.status)).length} l="Con novedad / devolución"/></div><DeliveriesAdmin setGhost={setGhost}/></>}
+      {tab==='alertas'&&<Alerts/>}
     </div></div></div>{tab==='ent'&&ghost&&<div style={{position:'relative',zIndex:3,padding:'0 14px'}}><LiveList/></div>}</>;
 }
 
