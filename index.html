@@ -519,6 +519,36 @@ function parseSheet(rows){return rows.map(r=>{const o={};Object.keys(r).forEach(
   const pay=normKey(o.tipopago||o.pago||o.tipo||o.metodo||'contado');const pt=pay.includes('cred')?'credito':pay.includes('trans')?'transferencia':pay.includes('mix')?'mixta':'contado';
   return{number:String(o.factura||o.numero||o.nro||o.numerofactura||'').trim(),client:o.cliente||'',address:o.direccion||'',value:+String(o.valor||o.total||0).replace(/[^\d.]/g,'')||0,payType:pt,cash:+o.efectivo||0,transfer:+o.transferencia||0,products:parseProducts(o.productos||o.detalle)}}).filter(r=>r.number)}
 
+/* ============ ENTREGAS: descarga del cuadre de ruta (Excel) ============ */
+function exportCuadre(r,l,geo,users){
+  const nm=id=>users.find(u=>u.id===id)?.name||'';
+  const sum=l.reduce((a,i)=>{const c=collected(i);return{cash:a.cash+c.cash,transfer:a.transfer+c.transfer,credit:a.credit+c.credit,value:a.value+(+i.value||0)}},{cash:0,transfer:0,credit:0,value:0});
+  const retv=l.reduce((a,i)=>a+(i.returned||[]).reduce((x,p)=>x+p.qty*(p.price||0),0),0);
+  const cnt=k=>l.filter(i=>i.status===k).length;
+  const dur=r.startedAt&&r.finishedAt?fmt(r.finishedAt-r.startedAt):'';
+  const resumen=[
+    ['CUADRE DE RUTA'],[],
+    ['Ruta',r.name],['Fecha',r.date],['Conductor',nm(r.driverId)],['Auxiliar',nm(r.auxId)],['Vehículo / placa',r.vehicle||''],
+    ['Inicio',dfmt(r.startedAt)],['Fin',dfmt(r.finishedAt)],['Duración',dur],['Finalizada por',r.finishedByName||''],[],
+    ['FACTURAS'],['Total facturas',l.length],['Entregado OK',cnt('ok')],['Con novedad',cnt('novedad')],['Devolución parcial',cnt('parcial')],['Devolución total',cnt('total')],['Reenvío',cnt('reenvio')],['Pendientes',cnt('pendiente')+cnt('ruta')],[],
+    ['VALORES'],['Valor facturado',sum.value],['Efectivo recaudado',Math.round(sum.cash)],['Transferencias recaudadas',Math.round(sum.transfer)],['Crédito',Math.round(sum.credit)],['Total recaudado (efectivo + transf.)',Math.round(sum.cash+sum.transfer)],['Valor devuelto',Math.round(retv)]
+  ];
+  const det=l.map(i=>{const c=collected(i),p=geo.find(x=>x.id===i.id);return{
+    'Factura':i.number,'Cliente':i.client,'Dirección':i.address,'Tipo de pago':PAYS[i.payType]||i.payType,'Valor factura':+i.value||0,
+    'Pago efectivo':i.payType==='mixta'?+i.cash||0:'','Pago transferencia':i.payType==='mixta'?+i.transfer||0:'',
+    'Estado':IST[i.status]?.l||i.status,'Motivo / novedad':i.reason||'','Productos devueltos':(i.returned||[]).map(x=>x.name+' x'+x.qty).join('; '),
+    'Recaudo efectivo':Math.round(c.cash),'Recaudo transferencia':Math.round(c.transfer),'Crédito':Math.round(c.credit),
+    'Hora gestión':i.deliveredAt?dfmt(i.deliveredAt):'','Gestionada por':i.deliveredByName||'','Latitud':p?p.lat:'','Longitud':p?p.lng:'',
+    'Mapa':p?'https://www.google.com/maps?q='+p.lat+','+p.lng:''}});
+  const prods=[];l.forEach(i=>(i.products||[]).forEach(p=>prods.push({'Factura':i.number,'Cliente':i.client,'Producto':p.name,'Cantidad':p.qty,'Precio unit.':p.price||0,'Subtotal':(p.price||0)*p.qty,'Devuelto':((i.returned||[]).find(x=>x.name===p.name)||{}).qty||0})));
+  const wb=XLSX.utils.book_new();
+  const w1=XLSX.utils.aoa_to_sheet(resumen);w1['!cols']=[{wch:38},{wch:30}];
+  const w2=XLSX.utils.json_to_sheet(det);w2['!cols']=[10,26,30,13,13,13,14,18,30,30,14,16,12,16,18,11,11,36].map(wch=>({wch}));
+  const w3=XLSX.utils.json_to_sheet(prods.length?prods:[{Aviso:'Sin detalle de productos'}]);w3['!cols']=[10,26,28,10,12,12,10].map(wch=>({wch}));
+  XLSX.utils.book_append_sheet(wb,w1,'Cuadre');XLSX.utils.book_append_sheet(wb,w2,'Detalle de facturas');XLSX.utils.book_append_sheet(wb,w3,'Productos');
+  XLSX.writeFile(wb,('cuadre_'+r.name+'_'+r.date).replace(/[^\w.-]+/g,'_')+'.xlsx');
+}
+
 /* ============ ENTREGAS: formulario de ruta (admin) ============ */
 function RouteForm({onClose}){
   const {users,msg,notify}=useC();
@@ -558,7 +588,7 @@ function DeliveriesAdmin({setGhost}){
       return <div key={r.id} className="glass"><div className="row"><b className="sp">{r.name}</b><Chip c={r.status==='finalizada'?'var(--gr)':r.status==='en_ruta'?'var(--bl)':'#94a3b8'}>{r.status==='en_ruta'?'En ruta':r.status==='finalizada'?'Finalizada':'Asignada'}</Chip></div>
       <div className="muted" style={{fontSize:13}}>📅 {r.date} · 🚚 {users.find(u=>u.id===r.driverId)?.name||'—'} · 👷 {users.find(u=>u.id===r.auxId)?.name||'—'} {r.vehicle&&'· '+r.vehicle}</div>
       <Progress v={l.length?d/l.length*100:0} label={`${d}/${l.length} facturas`}/>
-      <div className="row" style={{marginTop:8}}><Btn sm onClick={()=>{setSel(r.id);setSub('cuadre')}}>Ver cuadre</Btn><Btn sm c="#64748b" onClick={()=>{if(confirm('¿Eliminar ruta y sus facturas?')){l.forEach(i=>{DB.del('invoices',i.id);DB.del('geo',i.id)});DB.del('routes',r.id);DB.del('live',r.id)}}}>🗑</Btn></div></div>})}</div>{!routes.length&&<p className="muted">Aún no hay rutas.</p>}</>}
+      <div className="row" style={{marginTop:8}}><Btn sm onClick={()=>{setSel(r.id);setSub('cuadre')}}>Ver cuadre</Btn><Btn sm c="var(--gr)" onClick={()=>exportCuadre(r,l,geo,users)}>⬇ Descargar cuadre</Btn><Btn sm c="#64748b" onClick={()=>{if(confirm('¿Eliminar ruta y sus facturas?')){l.forEach(i=>{DB.del('invoices',i.id);DB.del('geo',i.id)});DB.del('routes',r.id);DB.del('live',r.id)}}}>🗑</Btn></div></div>})}</div>{!routes.length&&<p className="muted">Aún no hay rutas.</p>}</>}
     {sub==='cuadre'&&<Cuadre sel={sel} setSel={setSel}/>}
     {sub==='stats'&&<DStats/>}
     {sub==='personal'&&<Workers roles={['driver','aux']}/>}
@@ -571,7 +601,7 @@ function Cuadre({sel,setSel}){
   const tot=l.reduce((s,i)=>{const c=collected(i);return{cash:s.cash+c.cash,transfer:s.transfer+c.transfer,credit:s.credit+c.credit,value:s.value+(+i.value||0)}},{cash:0,transfer:0,credit:0,value:0});
   const ret=l.reduce((s,i)=>s+(i.returned||[]).reduce((a,p)=>a+p.qty*(p.price||0),0),0);
   const g=id=>geo.find(x=>x.id===id);
-  return <div><select value={rid||''} onChange={e=>setSel(e.target.value)} style={{maxWidth:360}}>{routes.map(x=><option key={x.id} value={x.id}>{x.date} · {x.name}</option>)}</select>
+  return <div><div className="row"><select value={rid||''} onChange={e=>setSel(e.target.value)} style={{maxWidth:360}}>{routes.map(x=><option key={x.id} value={x.id}>{x.date} · {x.name}{x.status==='finalizada'?' ✔':''}</option>)}</select>{r&&<Btn c="var(--gr)" onClick={()=>exportCuadre(r,l,geo,users)}>⬇ Descargar cuadre (Excel)</Btn>}{r&&<Chip c={r.status==='finalizada'?'var(--gr)':r.status==='en_ruta'?'var(--bl)':'#94a3b8'}>{r.status==='finalizada'?'Ruta finalizada'+(r.finishedByName?' por '+r.finishedByName:''):r.status==='en_ruta'?'En ruta':'Asignada'}</Chip>}</div>
   {r&&<><div className="grid" style={{margin:'12px 0'}}><Stat c="var(--cy)" v={money(tot.value)} l="Valor facturado"/><Stat c="var(--gr)" v={money(tot.cash)} l="Efectivo recaudado"/><Stat c="var(--bl)" v={money(tot.transfer)} l="Transferencias"/><Stat c="var(--am)" v={money(tot.credit)} l="A crédito"/><Stat c="var(--rd)" v={money(ret)} l="Valor devuelto"/></div>
   <div className="row" style={{marginBottom:8}}>{Object.entries(IST).map(([k,s])=><Chip key={k} c={s.c}>{s.l}: {l.filter(i=>i.status===k).length}</Chip>)}</div>
   <div className="tw glass pn"><table><thead><tr><th>Factura</th><th>Cliente</th><th>Dirección</th><th>Pago</th><th>Valor</th><th>Estado</th><th>Motivo / devolución</th><th>Hora</th><th>📍 GPS (solo admin)</th></tr></thead><tbody>
@@ -650,7 +680,7 @@ function DelivAdminApp(){
 
 /* ============ App Entregas (conductor / auxiliar) ============ */
 function DeliveryApp(){
-  const {me,routes,invoices,notify,msg,users}=useC();const [rid,setRid]=useState(''),[dlg,setDlg]=useState(null),[open,setOpen]=useState(null);
+  const {me,routes,invoices,notify,msg,users}=useC();const [rid,setRid]=useState(''),[dlg,setDlg]=useState(null),[open,setOpen]=useState(null),[fin,setFin]=useState(false);
   const mine=routes.filter(r=>r.driverId===me.id||r.auxId===me.id).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   const r=mine.find(x=>x.id===rid)||mine.find(x=>x.status!=='finalizada')||mine[0];
   const list=r?invoices.filter(i=>i.routeId===r.id).sort((a,b)=>a.order-b.order):[];
@@ -667,16 +697,22 @@ function DeliveryApp(){
   const register=async(i,patch)=>{const p=await getPos();
     await DB.set('invoices',i.id,{...patch,deliveredAt:Date.now(),deliveredBy:me.id,deliveredByName:me.name});
     if(p)await DB.set('geo',i.id,{lat:p.lat,lng:p.lng,acc:p.acc,at:Date.now(),routeId:i.routeId,by:me.id});else msg('⚠ No se pudo obtener el GPS (activa la ubicación)');
-    const after=list.map(x=>x.id===i.id?{...x,...patch}:x);
-    if(after.every(x=>DONE.includes(x.status))){await DB.set('routes',r.id,{status:'finalizada',finishedAt:Date.now()});await DB.del('live',r.id);notify({dept:'entregas',text:`✅ Ruta ${r.name} finalizada por ${me.name}`});msg('🏁 Ruta finalizada')}
+    if(list.every(x=>x.id===i.id?true:DONE.includes(x.status)))msg('Todas las facturas gestionadas — pulsa «Finalizar ruta»');
     if(patch.status!=='ok')notify({dept:'entregas',text:`${IST[patch.status].l} · Fact. ${i.number} (${i.client}): ${patch.reason||''}`})};
-  const done=list.filter(i=>DONE.includes(i.status)).length;
+  const done=list.filter(i=>DONE.includes(i.status)).length,pend=list.filter(i=>!DONE.includes(i.status));
+  const finishRoute=async()=>{
+    const okc=list.filter(i=>i.status==='ok').length;
+    if(pend.length)await DB.many('invoices',pend.map(i=>[i.id,{...i,status:'reenvio',reason:'No entregada al finalizar la ruta',deliveredAt:Date.now(),deliveredBy:me.id,deliveredByName:me.name}]));
+    await DB.set('routes',r.id,{status:'finalizada',finishedAt:Date.now(),finishedBy:me.id,finishedByName:me.name});
+    await DB.del('live',r.id);
+    notify({dept:'entregas',loud:true,text:'🏁 Ruta "'+r.name+'" FINALIZADA por '+me.name+' — '+okc+'/'+list.length+' entregadas OK. Ya puedes descargar el cuadre de ruta.'});
+    setFin(false);msg('🏁 Ruta finalizada — se avisó al administrador');};
   return <><TopBar title="Entregas"/><div className="wrap">
     {!mine.length&&<div className="glass">No tienes rutas asignadas.</div>}
     {mine.length>1&&<select value={r?.id} onChange={e=>setRid(e.target.value)} style={{marginBottom:10}}>{mine.map(x=><option key={x.id} value={x.id}>{x.date} · {x.name}</option>)}</select>}
     {r&&<><div className="glass" style={{marginBottom:12}}><div className="row"><b className="sp" style={{fontSize:18}}>{r.name}</b><Chip c={r.status==='finalizada'?'var(--gr)':r.status==='en_ruta'?'var(--bl)':'#94a3b8'}>{r.status==='finalizada'?'Finalizada':r.status==='en_ruta'?'En ruta':'Por iniciar'}</Chip></div>
       <div className="muted">{r.date} · {r.vehicle||'—'} · {list.length} facturas · {money(list.reduce((s,i)=>s+(+i.value||0),0))}</div><Progress v={list.length?done/list.length*100:0} label={`${done}/${list.length} gestionadas`}/>
-      {r.status==='asignada'&&<Btn big c="var(--gr)" style={{marginTop:10}} onClick={startRoute}>▶ Iniciar ruta</Btn>}
+      {r.status==='asignada'&&<Btn big c="var(--gr)" style={{marginTop:10}} onClick={startRoute}>▶ Iniciar ruta</Btn>}{r.status==='en_ruta'&&<Btn big c={pend.length?'var(--am)':'var(--gr)'} style={{marginTop:10}} onClick={()=>setFin(true)}>🏁 Finalizar ruta</Btn>}
       {r.startedAt&&<div className="muted" style={{marginTop:6}}>Inicio: {dfmt(r.startedAt)}{r.finishedAt&&` · Fin: ${dfmt(r.finishedAt)} · Duración ${fmt(r.finishedAt-r.startedAt)}`}</div>}</div>
     <div className="grid2">{list.map(i=><div key={i.id} className="glass" style={{borderColor:IST[i.status].c,boxShadow:`0 0 14px ${IST[i.status].c}55`,background:i.status==='total'?'#450a0acc':undefined}}>
       <div className="row"><b className="sp">Fact. {i.number}</b><Chip c={IST[i.status].c}>{IST[i.status].l}</Chip></div>
@@ -689,7 +725,7 @@ function DeliveryApp(){
         <Btn c="var(--gr)" onClick={()=>register(i,{status:'ok',reason:'',returned:[]})}>✔ Entregado OK</Btn>
         <Btn c="var(--am)" onClick={()=>setDlg({i,kind:'novedad'})}>⚠ Novedad</Btn>
         <Btn c="#a99bd0" onClick={()=>setDlg({i,kind:'reenvio'})}>🔁 Reenvío</Btn></div>}</div>)}</div></>}
-  </div>{dlg&&<NoveltyDialog dlg={dlg} onClose={()=>setDlg(null)} onSave={p=>{register(dlg.i,p);setDlg(null)}}/>}</>;
+  </div>{fin&&<Modal title="Finalizar ruta" onClose={()=>setFin(false)}><p>Ruta <b>{r.name}</b>: {done} de {list.length} facturas gestionadas.</p>{pend.length>0&&<p style={{color:'var(--am)'}}>⚠ Hay {pend.length} factura(s) sin gestionar. Se marcarán como <b>Reenvío</b> («No entregada al finalizar la ruta»).</p>}<p className="muted">Se avisará al administrador y quedará disponible el cuadre de ruta.</p><div className="row"><Btn c="var(--gr)" onClick={finishRoute}>Sí, finalizar ruta</Btn><Btn c="#64748b" onClick={()=>setFin(false)}>Cancelar</Btn></div></Modal>}{dlg&&<NoveltyDialog dlg={dlg} onClose={()=>setDlg(null)} onSave={p=>{register(dlg.i,p);setDlg(null)}}/>}</>;
 }
 function NoveltyDialog({dlg,onClose,onSave}){
   const {i,kind}=dlg;const [t,setT]=useState(kind==='reenvio'?'reenvio':'novedad'),[why,setWhy]=useState(''),[q,setQ]=useState({});
