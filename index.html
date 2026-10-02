@@ -8,22 +8,22 @@
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23070b14'/%3E%3Ctext x='50' y='66' font-size='56' text-anchor='middle'%3E%F0%9F%A7%B9%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
-:root{--bg:#070b14;--p:#0f172a;--p2:#16213a;--t:#e6edf7;--m:#8ea0bd;--cy:#22d3ee;--mg:#e879f9;--gr:#4ade80;--rd:#f87171;--am:#fbbf24;--bl:#60a5fa}
+:root{--bg:#0b0f17;--p:#111827;--p2:#182033;--t:#e8ecf3;--m:#8b97ab;--cy:#7aa7c7;--mg:#a99bd0;--gr:#6bb58c;--rd:#d27b7b;--am:#d4a85f;--bl:#7b9fd4}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--t);font:15px/1.4 system-ui,Segoe UI,Roboto,sans-serif}
-body{min-height:100vh;background:radial-gradient(1200px 600px at 10% -10%,#12254d55,transparent),radial-gradient(900px 500px at 100% 0,#4b1d6b44,transparent),var(--bg)}
+body{min-height:100vh;background:linear-gradient(180deg,#0b0f17,#0d1320 60%,#0b0f17)}
 a{color:var(--cy)}
 h2,h3{margin:.2em 0 .5em}
 .wrap{max-width:1250px;margin:0 auto;padding:12px 14px calc(90px + env(safe-area-inset-bottom))}
-.glass{background:#0f172ad9;backdrop-filter:blur(8px);border:1px solid #ffffff14;border-radius:16px;padding:14px;animation:rise .4s both}
+.glass{background:#111827e6;backdrop-filter:blur(8px);border:1px solid #ffffff14;border-radius:16px;padding:14px;animation:rise .4s both}
 @keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-@keyframes glow{0%,100%{box-shadow:0 0 6px var(--c),0 0 14px color-mix(in srgb,var(--c) 40%,transparent),inset 0 0 6px color-mix(in srgb,var(--c) 30%,transparent)}50%{box-shadow:0 0 12px var(--c),0 0 26px color-mix(in srgb,var(--c) 60%,transparent),inset 0 0 10px color-mix(in srgb,var(--c) 45%,transparent)}}
+@keyframes glow{0%,100%{box-shadow:0 0 0 1px color-mix(in srgb,var(--c) 18%,transparent),0 0 8px color-mix(in srgb,var(--c) 20%,transparent)}50%{box-shadow:0 0 0 1px color-mix(in srgb,var(--c) 30%,transparent),0 0 16px color-mix(in srgb,var(--c) 34%,transparent)}}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
 @keyframes shake{0%,100%{transform:rotate(0)}25%{transform:rotate(-6deg)}75%{transform:rotate(6deg)}}
 @keyframes flash{0%,100%{background:#7f1d1d}50%{background:#dc2626}}
-.btn{--c:var(--cy);cursor:pointer;color:#fff;background:#0b1220;border:1.5px solid var(--c);border-radius:12px;padding:9px 15px;font:600 14px inherit;font-family:inherit;animation:glow 2.6s infinite;transition:transform .15s,background .2s;white-space:nowrap}
-.btn:hover{background:color-mix(in srgb,var(--c) 22%,#0b1220);transform:translateY(-2px)}
+.btn{--c:var(--cy);cursor:pointer;color:var(--t);background:#0f1623;border:1px solid color-mix(in srgb,var(--c) 65%,transparent);border-radius:10px;padding:9px 16px;font:500 14px inherit;font-family:inherit;letter-spacing:.2px;animation:glow 4.5s infinite;transition:transform .15s,background .2s;white-space:nowrap}
+.btn:hover{background:color-mix(in srgb,var(--c) 14%,#0f1623);transform:translateY(-1px)}
 .btn:active{transform:scale(.96)}
 .btn.sm{padding:5px 10px;font-size:12.5px;border-radius:9px}
 .btn.big{padding:16px 22px;font-size:17px;border-radius:16px}
@@ -33,31 +33,31 @@ h2,h3{margin:.2em 0 .5em}
 .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
 .grid2{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
 header.top{position:sticky;top:0;z-index:50;display:flex;gap:10px;align-items:center;padding:10px 14px;background:#070b14ee;backdrop-filter:blur(8px);border-bottom:1px solid #ffffff12}
-header.top h1{font-size:17px;margin:0;background:linear-gradient(90deg,var(--cy),var(--mg));-webkit-background-clip:text;background-clip:text;color:transparent}
+header.top h1{font-size:17px;margin:0;font-weight:600;letter-spacing:.4px;color:var(--t)}
 .tabs{display:flex;gap:8px;overflow-x:auto;padding:10px 14px;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
 input,select,textarea{width:100%;background:#0b1220;color:var(--t);border:1px solid #2b3a5c;border-radius:10px;padding:9px 11px;font:inherit;outline:none}
-input:focus,select:focus,textarea:focus{border-color:var(--cy);box-shadow:0 0 0 3px #22d3ee33}
+input:focus,select:focus,textarea:focus{border-color:var(--cy);box-shadow:0 0 0 3px #7aa7c733}
 input[type=range]{padding:0;accent-color:var(--cy)}
 label.f{display:block;font-size:12px;color:var(--m);margin:8px 0 3px}
 .chip{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;border:1px solid var(--c,#555);color:var(--c,#aaa);background:color-mix(in srgb,var(--c,#555) 15%,transparent)}
-.stat{--c:var(--cy);border:1px solid color-mix(in srgb,var(--c) 55%,transparent);border-radius:14px;padding:12px;background:linear-gradient(160deg,color-mix(in srgb,var(--c) 14%,#0f172a),#0f172a);box-shadow:0 0 14px color-mix(in srgb,var(--c) 22%,transparent);animation:rise .5s both}
+.stat{--c:var(--cy);border:1px solid color-mix(in srgb,var(--c) 38%,transparent);border-radius:14px;padding:13px;background:linear-gradient(160deg,color-mix(in srgb,var(--c) 8%,#111827),#111827);box-shadow:0 2px 14px #00000040;animation:rise .5s both}
 .stat b{display:block;font-size:26px;color:var(--c)}
 .stat span{color:var(--m);font-size:12.5px}
 .bar{height:9px;border-radius:9px;background:#1e2a47;overflow:hidden}
-.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--cy),var(--gr));border-radius:9px;transition:width .6s}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#6c93b3,var(--gr));border-radius:9px;transition:width .6s}
 table{width:100%;border-collapse:collapse;font-size:13.5px}
 th,td{padding:7px 8px;border-bottom:1px solid #ffffff12;text-align:left}
 th{color:var(--m);font-weight:600;font-size:12px}
 .tw{overflow-x:auto}
 .muted{color:var(--m)}
 /* habitaciones */
-.room{--c:#22c55e;position:relative;border:2px solid var(--c);border-radius:18px;padding:14px;background:linear-gradient(160deg,color-mix(in srgb,var(--c) 22%,#0f172a),#0f172a);animation:glow 2.8s infinite,rise .4s both;text-align:center}
-.room.limpieza{animation:glow 1s infinite,pulse 1s infinite}
+.room{--c:#6bb58c;position:relative;border:1.5px solid color-mix(in srgb,var(--c) 70%,transparent);border-radius:16px;padding:14px;background:linear-gradient(160deg,color-mix(in srgb,var(--c) 14%,#111827),#111827);animation:glow 4.5s infinite,rise .4s both;text-align:center}
+.room.limpieza{animation:glow 1.6s infinite,pulse 1.6s infinite}
 .room .rn{font-size:36px;font-weight:800;color:var(--c)}
 .room .rs{font-size:13px;color:var(--t);opacity:.85}
 .room .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:8px}
-.room .bubble,.fb{background:radial-gradient(circle at 30% 30%,#fde68a,#f59e0b);color:#1a1200;font-weight:800;border-radius:99px;box-shadow:0 0 18px #f59e0b}
+.room .bubble,.fb{background:linear-gradient(145deg,#e6c27a,#c9993f);color:#1a1405;font-weight:700;border-radius:99px;box-shadow:0 4px 18px #c9993f66}
 .room .bubble{position:absolute;top:-12px;right:-8px;padding:5px 11px;animation:float 2.2s infinite}
 #fbs{position:fixed;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px;z-index:80}
 .fb{padding:10px 14px;text-align:center;animation:float 2.4s infinite;min-width:84px}
@@ -65,25 +65,25 @@ th{color:var(--m);font-weight:600;font-size:12px}
 .fb b{font-size:18px}
 /* modal */
 .ov{position:fixed;inset:0;background:#000b;z-index:100;display:flex;align-items:center;justify-content:center;padding:14px;overflow:auto}
-.md{width:100%;max-width:640px;max-height:92vh;overflow:auto;background:var(--p);border:1px solid #22d3ee66;border-radius:18px;padding:16px;box-shadow:0 0 30px #22d3ee33;animation:rise .25s both}
+.md{width:100%;max-width:640px;max-height:92vh;overflow:auto;background:var(--p);border:1px solid #ffffff1f;border-radius:16px;padding:16px;box-shadow:0 20px 60px #000a;animation:rise .25s both}
 .alarm{position:fixed;inset:0;z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;animation:flash .6s infinite;text-align:center;padding:20px}
 .alarm .ic{font-size:90px;animation:shake .4s infinite}
 .alarm h1{font-size:30px;margin:0}
-.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:400;background:#0b1220;border:1px solid var(--cy);box-shadow:0 0 18px #22d3ee66;padding:10px 18px;border-radius:12px;animation:rise .3s both;max-width:90vw}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:400;background:#111827;border:1px solid #ffffff22;box-shadow:0 10px 30px #000a;padding:10px 18px;border-radius:12px;animation:rise .3s both;max-width:90vw}
 .chat{height:55vh;overflow:auto;display:flex;flex-direction:column;gap:6px;padding:6px}
 .msg{max-width:78%;padding:7px 11px;border-radius:14px;background:#1e2a47;align-self:flex-start}
 .msg.me{align-self:flex-end;background:#0e5a6b}
 .msg small{display:block;color:var(--m);font-size:10.5px}
 .home{min-height:90vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center}
-.home h1{font-size:clamp(28px,6vw,52px);margin:0;background:linear-gradient(90deg,var(--cy),var(--mg),var(--am));-webkit-background-clip:text;background-clip:text;color:transparent}
+.home h1{font-size:clamp(28px,6vw,48px);margin:0;font-weight:600;letter-spacing:.5px;color:var(--t)}
 .gantt{position:relative;height:16px;background:#1e2a47;border-radius:8px;margin:3px 0}
-.gantt i{position:absolute;top:0;bottom:0;border-radius:8px;background:linear-gradient(90deg,var(--mg),var(--cy));opacity:.9}
+.gantt i{position:absolute;top:0;bottom:0;border-radius:8px;background:linear-gradient(90deg,var(--mg),var(--cy));opacity:.85}
 #mapbg{position:fixed;inset:0;z-index:0}
-.car{font-size:28px;filter:drop-shadow(0 0 6px #22d3ee);animation:float 2s infinite}
+.car{font-size:28px;filter:drop-shadow(0 2px 4px #000);animation:float 2s infinite}
 .leaflet-container{background:#0b1220}
 .adminlayer{position:relative;z-index:2}
-.adminlayer.ghost .wrap>.glass{display:none}
-.pn{background:#0f172ad0}
+.adminlayer.ghost{pointer-events:none}.adminlayer.ghost header.top,.adminlayer.ghost .tabs,.adminlayer.ghost .wrap .btn,.adminlayer.ghost .wrap .pn{pointer-events:auto}.adminlayer.ghost .wrap>.glass{background:transparent!important;border:0;backdrop-filter:none!important;box-shadow:none}.leaflet-tile-pane{filter:invert(1) hue-rotate(200deg) brightness(.82) contrast(.92) saturate(.45)}.leaflet-popup-content-wrapper{border-radius:12px}
+.pn{background:#111827e0}
 @media print{header,.tabs,.btn.noprint,#fbs{display:none!important}body{background:#fff;color:#000}.qrc{break-inside:avoid;border:1px solid #000;color:#000}}
 @media(max-width:600px){.md{padding:12px}.room .rn{font-size:30px}}
 </style>
@@ -149,8 +149,8 @@ const dfmt=ts=>ts?new Date(ts).toLocaleString('es-CO',{dateStyle:'short',timeSty
 const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const ROLE={admin:'Administrador',maint_admin:'Admin mantenimiento',aseo:'Aseo',mantenimiento:'Mantenimiento / Jardinería',sistemas:'Sistemas',driver:'Conductor',aux:'Auxiliar',deliv_admin:'Admin entregas'};
-const ST={disponible:{c:'#22c55e',l:'Disponible'},ocupada:{c:'#3b82f6',l:'Ocupada'},limpieza:{c:'#ef4444',l:'Por limpiar'},proceso:{c:'#f59e0b',l:'En limpieza'}};
-const IST={pendiente:{c:'#94a3b8',l:'Pendiente'},ruta:{c:'#60a5fa',l:'En ruta'},ok:{c:'#22c55e',l:'Entregado OK'},novedad:{c:'#fbbf24',l:'Novedad'},parcial:{c:'#fb923c',l:'Devolución parcial'},total:{c:'#ef4444',l:'Devolución total'},reenvio:{c:'#c084fc',l:'Reenvío'}};
+const ST={disponible:{c:'#6bb58c',l:'Disponible'},ocupada:{c:'#6b95d1',l:'Ocupada'},limpieza:{c:'#d27b7b',l:'Por limpiar'},proceso:{c:'#d4a85f',l:'En limpieza'}};
+const IST={pendiente:{c:'#94a3b8',l:'Pendiente'},ruta:{c:'#7b9fd4',l:'En ruta'},ok:{c:'#6bb58c',l:'Entregado OK'},novedad:{c:'#d4a85f',l:'Novedad'},parcial:{c:'#d4905f',l:'Devolución parcial'},total:{c:'#d27b7b',l:'Devolución total'},reenvio:{c:'#a99bd0',l:'Reenvío'}};
 const DONE=['ok','novedad','parcial','total','reenvio'];
 const PAYS={contado:'Contado',credito:'Crédito',transferencia:'Transferencia',mixta:'Mixta'};
 
@@ -171,7 +171,7 @@ const Ctx=createContext();const useC=()=>useContext(Ctx);
 
 /* ============================ ÁTOMOS UI ================================== */
 const Btn=({c,sm,big,children,...p})=><button {...p} className={'btn'+(sm?' sm':'')+(big?' big':'')+(p.className?' '+p.className:'')} style={{'--c':c||'var(--cy)',...p.style}}>{children}</button>;
-const Modal=({title,onClose,children})=><div className="ov" onMouseDown={e=>e.target===e.currentTarget&&onClose()}><div className="md"><div className="row"><h3 className="sp">{title}</h3><Btn sm c="var(--rd)" onClick={onClose}>✕</Btn></div>{children}</div></div>;
+const Modal=({title,onClose,children})=>ReactDOM.createPortal(<div className="ov" onMouseDown={e=>e.target===e.currentTarget&&onClose()}><div className="md"><div className="row"><h3 className="sp">{title}</h3><Btn sm c="var(--rd)" onClick={onClose}>✕</Btn></div>{children}</div></div>,document.body);
 const F=({l,children})=><div><label className="f">{l}</label>{children}</div>;
 const Bar=({v})=><div className="bar"><i style={{width:clamp(v||0,0,100)+'%'}}/></div>;
 const Stat=({c,v,l})=><div className="stat" style={{'--c':c}}><b>{v}</b><span>{l}</span></div>;
@@ -266,7 +266,7 @@ function TopBar({title,tabs,tab,setTab,extra}){
 }
 
 /* ============ Habitaciones ============ */
-function FloatBubbles({list}){const now=useNow();return <div id="fbs">{list.filter(r=>r.status==='proceso').map(r=><div key={r.id} className="fb"><small>HAB {r.number}</small><b>{fmt(now-r.startedAt)}</b></div>)}</div>}
+function FloatBubbles({list}){const now=useNow();return ReactDOM.createPortal(<div id="fbs">{list.filter(r=>r.status==='proceso').map(r=><div key={r.id} className="fb"><small>HAB {r.number}</small><b>{fmt(now-r.startedAt)}</b></div>)}</div>,document.body)}
 function RoomCard({r,children,onClick}){
   const {users}=useC();const now=useNow();const s=ST[r.status]||ST.disponible;
   const names=(r.assignedTo||[]).map(i=>users.find(u=>u.id===i)?.name).filter(Boolean).join(', ');
@@ -348,7 +348,7 @@ function Alerts(){
 }
 
 /* ============ Tareas ============ */
-const TS={pendiente:{c:'#94a3b8',l:'Pendiente'},en_curso:{c:'#fbbf24',l:'En curso'},completada:{c:'#22c55e',l:'Completada'}};
+const TS={pendiente:{c:'#94a3b8',l:'Pendiente'},en_curso:{c:'#d4a85f',l:'En curso'},completada:{c:'#6bb58c',l:'Completada'}};
 const overdue=t=>t.end&&t.end<today()&&t.status!=='completada';
 function TaskForm({t,onClose}){
   const {users,types,equip,notify,msg}=useC();
@@ -595,7 +595,7 @@ function DStats(){
 function LiveList(){
   const {live,routes,users}=useC();const now=useNow();
   const l=live.filter(v=>now-v.ts<30*60000);
-  return <div className="glass pn" style={{display:'block',position:'relative',zIndex:3,maxWidth:360}}><b>Vehículos en vivo ({l.length})</b>{l.map(v=><div key={v.id} className="muted" style={{fontSize:13}}>🚚 {v.name} · {v.vehicle||''} · hace {fmt(now-v.ts)}</div>)}<div className="muted" style={{fontSize:12}}>Pulsa el camión en el mapa para ver sus facturas entregadas.</div></div>;
+  return <div className="glass pn" style={{display:'block',maxWidth:360,marginTop:10}}><b>Vehículos en vivo ({l.length})</b>{l.map(v=><div key={v.id} className="muted" style={{fontSize:13}}>🚚 {v.name} · {v.vehicle||''} · hace {fmt(now-v.ts)}</div>)}<div className="muted" style={{fontSize:12}}>Pulsa el camión en el mapa para ver sus facturas entregadas.</div></div>;
 }
 
 /* ============ Mapa de fondo (admin) ============ */
@@ -604,7 +604,7 @@ function MapBG(){
   const el=useRef(),map=useRef(),layer=useRef(),dref=useRef(),fitted=useRef(false);
   dref.current={invoices,routes,users};
   useEffect(()=>{const m=L.map(el.current,{zoomControl:false}).setView([4.65,-74.1],11);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO',maxZoom:19}).addTo(m);L.control.zoom({position:'bottomleft'}).addTo(m);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19}).addTo(m);L.control.zoom({position:'bottomleft'}).addTo(m);
     layer.current=L.layerGroup().addTo(m);map.current=m;setTimeout(()=>m.invalidateSize(),300);return()=>m.remove()},[]);
   useEffect(()=>{const g=layer.current;g.clearLayers();const pts=[];
     geo.forEach(p=>{const i=dref.current.invoices.find(x=>x.id===p.id);if(!i)return;pts.push([p.lat,p.lng]);L.circleMarker([p.lat,p.lng],{radius:6,color:IST[i.status]?.c,fillColor:IST[i.status]?.c,fillOpacity:.8}).bindPopup(`<b>${esc(i.number)}</b> ${esc(i.client)}<br>${esc(IST[i.status]?.l)}<br>${esc(i.reason||'')}`).addTo(g)});
@@ -625,14 +625,14 @@ function AdminApp(){
   const mapTab=tab==='ent';
   return <><MapBG/><div className={'adminlayer'+(ghost&&mapTab?' ghost':'')}>
     <TopBar title="Administrador General" tabs={tabs} tab={tab} setTab={setTab}/>
-    <div className="wrap"><div className="glass" style={{background:'#0f172ae6'}}>
-    {tab==='resumen'&&<><h3>Panorama general</h3><div className="grid"><Stat c="#22c55e" v={rooms.filter(r=>r.status==='disponible').length} l="Habitaciones disponibles"/><Stat c="#ef4444" v={rooms.filter(r=>r.status==='limpieza').length} l="Por limpiar"/><Stat c="#f59e0b" v={rooms.filter(r=>r.status==='proceso').length} l="En limpieza"/><Stat c="#3b82f6" v={rooms.filter(r=>r.status==='ocupada').length} l="Ocupadas"/><Stat c="var(--am)" v={tasks.filter(t=>t.status!=='completada').length} l="Tareas de mantenimiento abiertas"/><Stat c="var(--cy)" v={works.length} l="Obras"/><Stat c="var(--bl)" v={routes.filter(r=>r.status==='en_ruta').length} l="Rutas en curso"/><Stat c="var(--gr)" v={invoices.filter(i=>DONE.includes(i.status)).length+'/'+invoices.length} l="Facturas entregadas"/><Stat c="var(--mg)" v={users.filter(u=>u.role!=='admin').length} l="Personal registrado"/></div></>}
+    <div className="wrap"><div className="glass" style={{background:tab==='ent'?'#0b1220b0':'#111827ec',backdropFilter:'blur(5px)'}}>
+    {tab==='resumen'&&<><h3>Panorama general</h3><div className="grid"><Stat c="#6bb58c" v={rooms.filter(r=>r.status==='disponible').length} l="Habitaciones disponibles"/><Stat c="#d27b7b" v={rooms.filter(r=>r.status==='limpieza').length} l="Por limpiar"/><Stat c="#d4a85f" v={rooms.filter(r=>r.status==='proceso').length} l="En limpieza"/><Stat c="#6b95d1" v={rooms.filter(r=>r.status==='ocupada').length} l="Ocupadas"/><Stat c="var(--am)" v={tasks.filter(t=>t.status!=='completada').length} l="Tareas de mantenimiento abiertas"/><Stat c="var(--cy)" v={works.length} l="Obras"/><Stat c="var(--bl)" v={routes.filter(r=>r.status==='en_ruta').length} l="Rutas en curso"/><Stat c="var(--gr)" v={invoices.filter(i=>DONE.includes(i.status)).length+'/'+invoices.length} l="Facturas entregadas"/><Stat c="var(--mg)" v={users.filter(u=>u.role!=='admin').length} l="Personal registrado"/></div></>}
     {tab==='hab'&&<AdminRooms/>}{tab==='aseo'&&<CleaningStats/>}
     {tab==='mant'&&<><MaintOverview/><h3 style={{marginTop:16}}>Tareas</h3><TasksView readOnly/><h3 style={{marginTop:16}}>Obras</h3><WorksView readOnly/></>}
     {tab==='ent'&&<DeliveriesAdmin setGhost={setGhost}/>}
     {tab==='personal'&&<Workers roles={['aseo','mantenimiento','sistemas','maint_admin','deliv_admin','driver','aux']}/>}
     {tab==='chat'&&<Chat/>}{tab==='alertas'&&<Alerts/>}{tab==='qr'&&<QRSheet/>}
-    </div></div></div>{tab==='ent'&&ghost&&<div style={{position:'relative',zIndex:3,padding:'0 14px'}}><LiveList/></div>}</>;
+    </div></div></div></>;
 }
 
 /* ============ App Admin de Entregas (propia interfaz) ============ */
@@ -642,10 +642,10 @@ function DelivAdminApp(){
   const done=invoices.filter(i=>DONE.includes(i.status));
   return <><MapBG/><div className={'adminlayer'+(ghost&&tab==='ent'?' ghost':'')}>
     <TopBar title="Admin de Entregas" tabs={[['ent','🚚 Entregas'],['alertas','🔔 Alertas']]} tab={tab} setTab={setTab}/>
-    <div className="wrap"><div className="glass" style={{background:'#0f172ae6'}}>
+    <div className="wrap"><div className="glass" style={{background:tab==='ent'?'#0b1220b0':'#111827ec',backdropFilter:'blur(5px)'}}>
       {tab==='ent'&&<><div className="grid" style={{marginBottom:14}}><Stat c="var(--bl)" v={routes.filter(r=>r.status==='en_ruta').length} l="Rutas en curso"/><Stat c="var(--cy)" v={live.filter(v=>now-v.ts<30*60000).length} l="Vehículos en vivo"/><Stat c="var(--gr)" v={done.length+'/'+invoices.length} l="Facturas gestionadas"/><Stat c="var(--rd)" v={invoices.filter(i=>['total','parcial','novedad','reenvio'].includes(i.status)).length} l="Con novedad / devolución"/></div><DeliveriesAdmin setGhost={setGhost}/></>}
       {tab==='alertas'&&<Alerts/>}
-    </div></div></div>{tab==='ent'&&ghost&&<div style={{position:'relative',zIndex:3,padding:'0 14px'}}><LiveList/></div>}</>;
+    </div></div></div></>;
 }
 
 /* ============ App Entregas (conductor / auxiliar) ============ */
@@ -688,7 +688,7 @@ function DeliveryApp(){
       {r.status==='en_ruta'&&!['ok'].includes(i.status)&&<div className="row" style={{marginTop:8}}>
         <Btn c="var(--gr)" onClick={()=>register(i,{status:'ok',reason:'',returned:[]})}>✔ Entregado OK</Btn>
         <Btn c="var(--am)" onClick={()=>setDlg({i,kind:'novedad'})}>⚠ Novedad</Btn>
-        <Btn c="#c084fc" onClick={()=>setDlg({i,kind:'reenvio'})}>🔁 Reenvío</Btn></div>}</div>)}</div></>}
+        <Btn c="#a99bd0" onClick={()=>setDlg({i,kind:'reenvio'})}>🔁 Reenvío</Btn></div>}</div>)}</div></>}
   </div>{dlg&&<NoveltyDialog dlg={dlg} onClose={()=>setDlg(null)} onSave={p=>{register(dlg.i,p);setDlg(null)}}/>}</>;
 }
 function NoveltyDialog({dlg,onClose,onSave}){
@@ -700,7 +700,7 @@ function NoveltyDialog({dlg,onClose,onSave}){
     if(t==='total')returned=(i.products||[]).map(p=>({name:p.name,qty:p.qty,price:p.price||0}));
     onSave({status:t,reason,returned})};
   return <Modal title={`Factura ${i.number} — ${i.client}`} onClose={onClose}>
-    {kind==='novedad'&&<div className="row">{[['novedad','Novedad','var(--am)'],['parcial','Devolución parcial','#fb923c'],['total','Devolución total','var(--rd)']].map(([k,l,c])=><Btn key={k} c={t===k?c:'#475569'} onClick={()=>setT(k)}>{t===k?'● ':''}{l}</Btn>)}</div>}
+    {kind==='novedad'&&<div className="row">{[['novedad','Novedad','var(--am)'],['parcial','Devolución parcial','#d4905f'],['total','Devolución total','var(--rd)']].map(([k,l,c])=><Btn key={k} c={t===k?c:'#475569'} onClick={()=>setT(k)}>{t===k?'● ':''}{l}</Btn>)}</div>}
     <F l="¿Por qué se presentó?"><select value={m} onChange={e=>setM(e.target.value)}>{motivos.map(x=><option key={x}>{x}</option>)}</select></F>
     <F l="Detalle (opcional)"><textarea rows={2} value={why} onChange={e=>setWhy(e.target.value)}/></F>
     {t==='parcial'&&<><h3>Productos devueltos</h3>{(i.products||[]).map((p,k)=><div key={k} className="row"><span className="sp">{p.name} (de {p.qty})</span><input type="number" min="0" max={p.qty} style={{width:90}} value={q[k]||''} onChange={e=>setQ({...q,[k]:Math.min(p.qty,+e.target.value)})}/></div>)}</>}
