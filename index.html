@@ -1,0 +1,712 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Control de Actividades</title>
+<meta name="theme-color" content="#070b14">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23070b14'/%3E%3Ctext x='50' y='66' font-size='56' text-anchor='middle'%3E%F0%9F%A7%B9%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root{--bg:#070b14;--p:#0f172a;--p2:#16213a;--t:#e6edf7;--m:#8ea0bd;--cy:#22d3ee;--mg:#e879f9;--gr:#4ade80;--rd:#f87171;--am:#fbbf24;--bl:#60a5fa}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--t);font:15px/1.4 system-ui,Segoe UI,Roboto,sans-serif}
+body{min-height:100vh;background:radial-gradient(1200px 600px at 10% -10%,#12254d55,transparent),radial-gradient(900px 500px at 100% 0,#4b1d6b44,transparent),var(--bg)}
+a{color:var(--cy)}
+h2,h3{margin:.2em 0 .5em}
+.wrap{max-width:1250px;margin:0 auto;padding:12px 14px calc(90px + env(safe-area-inset-bottom))}
+.glass{background:#0f172ad9;backdrop-filter:blur(8px);border:1px solid #ffffff14;border-radius:16px;padding:14px;animation:rise .4s both}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes glow{0%,100%{box-shadow:0 0 6px var(--c),0 0 14px color-mix(in srgb,var(--c) 40%,transparent),inset 0 0 6px color-mix(in srgb,var(--c) 30%,transparent)}50%{box-shadow:0 0 12px var(--c),0 0 26px color-mix(in srgb,var(--c) 60%,transparent),inset 0 0 10px color-mix(in srgb,var(--c) 45%,transparent)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes shake{0%,100%{transform:rotate(0)}25%{transform:rotate(-6deg)}75%{transform:rotate(6deg)}}
+@keyframes flash{0%,100%{background:#7f1d1d}50%{background:#dc2626}}
+.btn{--c:var(--cy);cursor:pointer;color:#fff;background:#0b1220;border:1.5px solid var(--c);border-radius:12px;padding:9px 15px;font:600 14px inherit;font-family:inherit;animation:glow 2.6s infinite;transition:transform .15s,background .2s;white-space:nowrap}
+.btn:hover{background:color-mix(in srgb,var(--c) 22%,#0b1220);transform:translateY(-2px)}
+.btn:active{transform:scale(.96)}
+.btn.sm{padding:5px 10px;font-size:12.5px;border-radius:9px}
+.btn.big{padding:16px 22px;font-size:17px;border-radius:16px}
+.btn:disabled{opacity:.4;animation:none;cursor:not-allowed}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.sp{flex:1}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+.grid2{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
+header.top{position:sticky;top:0;z-index:50;display:flex;gap:10px;align-items:center;padding:10px 14px;background:#070b14ee;backdrop-filter:blur(8px);border-bottom:1px solid #ffffff12}
+header.top h1{font-size:17px;margin:0;background:linear-gradient(90deg,var(--cy),var(--mg));-webkit-background-clip:text;background-clip:text;color:transparent}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding:10px 14px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+input,select,textarea{width:100%;background:#0b1220;color:var(--t);border:1px solid #2b3a5c;border-radius:10px;padding:9px 11px;font:inherit;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--cy);box-shadow:0 0 0 3px #22d3ee33}
+input[type=range]{padding:0;accent-color:var(--cy)}
+label.f{display:block;font-size:12px;color:var(--m);margin:8px 0 3px}
+.chip{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;border:1px solid var(--c,#555);color:var(--c,#aaa);background:color-mix(in srgb,var(--c,#555) 15%,transparent)}
+.stat{--c:var(--cy);border:1px solid color-mix(in srgb,var(--c) 55%,transparent);border-radius:14px;padding:12px;background:linear-gradient(160deg,color-mix(in srgb,var(--c) 14%,#0f172a),#0f172a);box-shadow:0 0 14px color-mix(in srgb,var(--c) 22%,transparent);animation:rise .5s both}
+.stat b{display:block;font-size:26px;color:var(--c)}
+.stat span{color:var(--m);font-size:12.5px}
+.bar{height:9px;border-radius:9px;background:#1e2a47;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--cy),var(--gr));border-radius:9px;transition:width .6s}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:7px 8px;border-bottom:1px solid #ffffff12;text-align:left}
+th{color:var(--m);font-weight:600;font-size:12px}
+.tw{overflow-x:auto}
+.muted{color:var(--m)}
+/* habitaciones */
+.room{--c:#22c55e;position:relative;border:2px solid var(--c);border-radius:18px;padding:14px;background:linear-gradient(160deg,color-mix(in srgb,var(--c) 22%,#0f172a),#0f172a);animation:glow 2.8s infinite,rise .4s both;text-align:center}
+.room.limpieza{animation:glow 1s infinite,pulse 1s infinite}
+.room .rn{font-size:36px;font-weight:800;color:var(--c)}
+.room .rs{font-size:13px;color:var(--t);opacity:.85}
+.room .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+.room .bubble,.fb{background:radial-gradient(circle at 30% 30%,#fde68a,#f59e0b);color:#1a1200;font-weight:800;border-radius:99px;box-shadow:0 0 18px #f59e0b}
+.room .bubble{position:absolute;top:-12px;right:-8px;padding:5px 11px;animation:float 2.2s infinite}
+#fbs{position:fixed;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px;z-index:80}
+.fb{padding:10px 14px;text-align:center;animation:float 2.4s infinite;min-width:84px}
+.fb small{display:block;font-size:11px;font-weight:700}
+.fb b{font-size:18px}
+/* modal */
+.ov{position:fixed;inset:0;background:#000b;z-index:100;display:flex;align-items:center;justify-content:center;padding:14px;overflow:auto}
+.md{width:100%;max-width:640px;max-height:92vh;overflow:auto;background:var(--p);border:1px solid #22d3ee66;border-radius:18px;padding:16px;box-shadow:0 0 30px #22d3ee33;animation:rise .25s both}
+.alarm{position:fixed;inset:0;z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;animation:flash .6s infinite;text-align:center;padding:20px}
+.alarm .ic{font-size:90px;animation:shake .4s infinite}
+.alarm h1{font-size:30px;margin:0}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:400;background:#0b1220;border:1px solid var(--cy);box-shadow:0 0 18px #22d3ee66;padding:10px 18px;border-radius:12px;animation:rise .3s both;max-width:90vw}
+.chat{height:55vh;overflow:auto;display:flex;flex-direction:column;gap:6px;padding:6px}
+.msg{max-width:78%;padding:7px 11px;border-radius:14px;background:#1e2a47;align-self:flex-start}
+.msg.me{align-self:flex-end;background:#0e5a6b}
+.msg small{display:block;color:var(--m);font-size:10.5px}
+.home{min-height:90vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center}
+.home h1{font-size:clamp(28px,6vw,52px);margin:0;background:linear-gradient(90deg,var(--cy),var(--mg),var(--am));-webkit-background-clip:text;background-clip:text;color:transparent}
+.gantt{position:relative;height:16px;background:#1e2a47;border-radius:8px;margin:3px 0}
+.gantt i{position:absolute;top:0;bottom:0;border-radius:8px;background:linear-gradient(90deg,var(--mg),var(--cy));opacity:.9}
+#mapbg{position:fixed;inset:0;z-index:0}
+.car{font-size:28px;filter:drop-shadow(0 0 6px #22d3ee);animation:float 2s infinite}
+.leaflet-container{background:#0b1220}
+.adminlayer{position:relative;z-index:2}
+.adminlayer.ghost .wrap>.glass{display:none}
+.pn{background:#0f172ad0}
+@media print{header,.tabs,.btn.noprint,#fbs{display:none!important}body{background:#fff;color:#000}.qrc{break-inside:avoid;border:1px solid #000;color:#000}}
+@media(max-width:600px){.md{padding:12px}.room .rn{font-size:30px}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<script type="text/babel">
+const {useState,useEffect,useRef,useMemo,createContext,useContext}=React;
+
+/* ============================ CONFIG SUPABASE ============================ */
+const SB_URL='https://nqmmfmyalpfloumyiyzh.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xbW1mbXlhbHBmbG91bXlpeXpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA4ODA0MDUsImV4cCI6MjEwNjQ1NjQwNX0.hDfdTapM9J92JPav3I0pvUU2mUwTUj-BKEhjnPZV1bg';
+const sb=supabase.createClient(SB_URL,SB_KEY);
+
+/* ============================ CAPA DE DATOS ============================== */
+const T={};
+const tbl=t=>T[t]||(T[t]={rows:{},subs:new Set(),loaded:false,loading:false});
+const flat=r=>({...r.data,id:r.id});
+const emit=t=>{const s=tbl(t),a=Object.values(s.rows);s.subs.forEach(f=>f(a))};
+async function load(t){
+  const s=tbl(t);s.loading=true;
+  const {data,error}=await sb.from(t).select('id,data');
+  s.loading=false;
+  if(error){console.error(t,error);window.__err&&window.__err('BD: '+error.message);return}
+  s.rows={};data.forEach(r=>s.rows[r.id]=flat(r));s.loaded=true;emit(t);
+}
+sb.channel('rt').on('postgres_changes',{event:'*',schema:'public'},p=>{
+  const s=T[p.table];if(!s)return;
+  if(p.eventType==='DELETE')delete s.rows[p.old.id];else s.rows[p.new.id]=flat(p.new);
+  emit(p.table);
+}).subscribe();
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)Object.keys(T).forEach(load)});
+const DB={
+  watch(t,cb){const s=tbl(t);s.subs.add(cb);if(s.loaded)cb(Object.values(s.rows));else if(!s.loading)load(t);return()=>s.subs.delete(cb)},
+  async set(t,id,d){const s=tbl(t);const m={...(s.rows[id]||{}),...d};delete m.id;s.rows[id]={...m,id};emit(t);
+    const {error}=await sb.from(t).upsert({id,data:m});if(error)window.__err&&window.__err(error.message)},
+  async many(t,list){const s=tbl(t);list.forEach(([id,d])=>{s.rows[id]={...d,id}});emit(t);
+    const {error}=await sb.from(t).upsert(list.map(([id,d])=>{const x={...d};delete x.id;return{id,data:x}}));if(error)window.__err&&window.__err(error.message)},
+  async del(t,id){const s=tbl(t);delete s.rows[id];emit(t);await sb.from(t).delete().eq('id',id)},
+};
+function useCol(t){
+  const [d,setD]=useState(()=>Object.values(tbl(t).rows));
+  useEffect(()=>DB.watch(t,a=>setD(a)),[t]);
+  return d;
+}
+
+/* ============================ UTILIDADES ================================= */
+const uid=()=>Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-3);
+const pad=n=>String(n).padStart(2,'0');
+const fmt=ms=>{ms=Math.max(0,Math.floor(ms/1000));const h=Math.floor(ms/3600),m=Math.floor(ms%3600/60),s=ms%60;return(h?h+':':'')+pad(m)+':'+pad(s)};
+const money=n=>'$'+Math.round(Number(n)||0).toLocaleString('es-CO');
+const today=()=>new Date().toISOString().slice(0,10);
+const dfmt=ts=>ts?new Date(ts).toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'}):'—';
+const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ROLE={admin:'Administrador',maint_admin:'Admin mantenimiento',aseo:'Aseo',mantenimiento:'Mantenimiento / Jardinería',sistemas:'Sistemas',driver:'Conductor',aux:'Auxiliar'};
+const ST={disponible:{c:'#22c55e',l:'Disponible'},ocupada:{c:'#3b82f6',l:'Ocupada'},limpieza:{c:'#ef4444',l:'Por limpiar'},proceso:{c:'#f59e0b',l:'En limpieza'}};
+const IST={pendiente:{c:'#94a3b8',l:'Pendiente'},ruta:{c:'#60a5fa',l:'En ruta'},ok:{c:'#22c55e',l:'Entregado OK'},novedad:{c:'#fbbf24',l:'Novedad'},parcial:{c:'#fb923c',l:'Devolución parcial'},total:{c:'#ef4444',l:'Devolución total'},reenvio:{c:'#c084fc',l:'Reenvío'}};
+const DONE=['ok','novedad','parcial','total','reenvio'];
+const PAYS={contado:'Contado',credito:'Crédito',transferencia:'Transferencia',mixta:'Mixta'};
+
+/* sonido / notificaciones */
+let AC=null,siren=null;
+const unlock=()=>{try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();AC.resume();if('Notification'in window&&Notification.permission==='default')Notification.requestPermission()}catch(e){}};
+function beep(){if(!AC)return;const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=880;g.gain.value=.4;o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+.25)}
+function startSiren(){if(!AC||siren)return;AC.resume();const o=AC.createOscillator(),g=AC.createGain();o.type='square';o.frequency.value=650;g.gain.value=.9;o.connect(g);g.connect(AC.destination);o.start();let hi=false;
+  siren=setInterval(()=>{hi=!hi;o.frequency.setValueAtTime(hi?1000:650,AC.currentTime);navigator.vibrate&&navigator.vibrate(300)},350);siren._o=o}
+function stopSiren(){if(siren){clearInterval(siren);try{siren._o.stop()}catch(e){}siren=null;navigator.vibrate&&navigator.vibrate(0)}}
+function sysNotify(title,body,loud){try{if('Notification'in window&&Notification.permission==='granted'&&navigator.serviceWorker)navigator.serviceWorker.ready.then(r=>r.showNotification(title,{body,vibrate:loud?[600,200,600,200,900]:[200],requireInteraction:!!loud,tag:'cda-'+Date.now(),icon:'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%2780%27 font-size=%2780%27%3E%F0%9F%94%94%3C/text%3E%3C/svg%3E'}))}catch(e){}}
+
+function useHash(){const [h,setH]=useState(location.hash);useEffect(()=>{const f=()=>setH(location.hash);addEventListener('hashchange',f);return()=>removeEventListener('hashchange',f)},[]);return h}
+function useNow(){const [n,setN]=useState(Date.now());useEffect(()=>{const i=setInterval(()=>setN(Date.now()),1000);return()=>clearInterval(i)},[]);return n}
+const getPos=()=>new Promise(res=>{if(!navigator.geolocation)return res(null);navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude,lng:p.coords.longitude,acc:p.coords.accuracy}),()=>res(null),{enableHighAccuracy:true,timeout:10000,maximumAge:5000})});
+
+const Ctx=createContext();const useC=()=>useContext(Ctx);
+
+/* ============================ ÁTOMOS UI ================================== */
+const Btn=({c,sm,big,children,...p})=><button {...p} className={'btn'+(sm?' sm':'')+(big?' big':'')+(p.className?' '+p.className:'')} style={{'--c':c||'var(--cy)',...p.style}}>{children}</button>;
+const Modal=({title,onClose,children})=><div className="ov" onMouseDown={e=>e.target===e.currentTarget&&onClose()}><div className="md"><div className="row"><h3 className="sp">{title}</h3><Btn sm c="var(--rd)" onClick={onClose}>✕</Btn></div>{children}</div></div>;
+const F=({l,children})=><div><label className="f">{l}</label>{children}</div>;
+const Bar=({v})=><div className="bar"><i style={{width:clamp(v||0,0,100)+'%'}}/></div>;
+const Stat=({c,v,l})=><div className="stat" style={{'--c':c}}><b>{v}</b><span>{l}</span></div>;
+const Chip=({c,children})=><span className="chip" style={{'--c':c}}>{children}</span>;
+function Pick({users,value=[],onChange}){return <div className="row">{users.length?users.map(u=>{const on=value.includes(u.id);return <Btn key={u.id} sm c={on?'var(--gr)':'#475569'} onClick={()=>onChange(on?value.filter(x=>x!==u.id):[...value,u.id])}>{on?'✓ ':''}{u.name}</Btn>}):<span className="muted">No hay personal creado</span>}</div>}
+function QR({text,size=170}){const r=useRef();useEffect(()=>{r.current.innerHTML='';new QRCode(r.current,{text,width:size,height:size,colorDark:'#000',colorLight:'#fff'})},[text]);return <div ref={r} style={{background:'#fff',padding:8,borderRadius:10,display:'inline-block'}}/>}
+function Progress({v,label}){return <div><div className="row"><span className="muted sp">{label}</span><b>{Math.round(v||0)}%</b></div><Bar v={v}/></div>}
+
+/* ============================ APP RAÍZ =================================== */
+function App(){
+  const hash=useHash();
+  const users=useCol('users'),rooms=useCol('rooms'),cleanings=useCol('cleanings'),tasks=useCol('tasks'),works=useCol('works'),notifs=useCol('notifs'),chat=useCol('chat'),catalog=useCol('catalog'),routes=useCol('routes'),invoices=useCol('invoices'),geo=useCol('geo'),live=useCol('live');
+  const [meId,setMeId]=useState(()=>localStorage.getItem('cda_me'));
+  const [toast,setToast]=useState(null);
+  useEffect(()=>{window.__err=m=>{setToast(m);setTimeout(()=>setToast(null),4000)}},[]);
+  const msg=m=>{setToast(m);setTimeout(()=>setToast(null),3000)};
+  const me=users.find(u=>u.id===meId);
+  const route=hash.startsWith('#admin/mantenimiento')?'maint_admin':hash.startsWith('#admin')?'admin':hash.startsWith('#servicio')?'aseo':hash.startsWith('#mantenimiento')?'mant':hash.startsWith('#entregas')?'entregas':'home';
+  const allowed={admin:['admin'],maint_admin:['maint_admin'],aseo:['aseo'],mant:['mantenimiento','sistemas'],entregas:['driver','aux']};
+  const login=u=>{localStorage.setItem('cda_me',u.id);setMeId(u.id)};
+  const logout=()=>{localStorage.removeItem('cda_me');setMeId(null);stopSiren()};
+  const notify=n=>DB.set('notifs',uid(),{...n,ts:Date.now(),by:me?.id});
+  const ctx={me,users,rooms,cleanings,tasks,works,notifs,chat,catalog,routes,invoices,geo,live,notify,msg,logout,types:(catalog.find(c=>c.id==='types')||{}).items||[],equip:(catalog.find(c=>c.id==='equip')||{}).items||[]};
+  let body;
+  if(route==='home')body=<Home/>;
+  else if(!me||!allowed[route].includes(me.role))body=<Login route={route} allowed={allowed[route]} onLogin={login} me={me} logout={logout}/>;
+  else body=<Ctx.Provider value={ctx}><Shell>{route==='admin'?<AdminApp/>:route==='maint_admin'?<MaintAdminApp/>:route==='aseo'?<CleanApp hash={hash}/>:route==='mant'?<MaintWorker/>:<DeliveryApp/>}</Shell></Ctx.Provider>;
+  return <>{body}{toast&&<div className="toast">{toast}</div>}</>;
+}
+
+function Home(){
+  const L=[['#servicio','🧹 Servicio / Aseo','var(--gr)'],['#mantenimiento','🔧 Mantenimiento y Jardinería','var(--am)'],['#entregas','🚚 Entregas','var(--bl)'],['#admin','👑 Administrador General','var(--mg)'],['#admin/mantenimiento','🛠 Admin Mantenimiento','var(--cy)']];
+  return <div className="home"><div style={{fontSize:70,animation:'float 3s infinite'}}>🏨</div><h1>Control de Actividades</h1><p className="muted">Aseo · Mantenimiento · Sistemas · Entregas</p>
+  <div className="row" style={{justifyContent:'center'}}>{L.map(([h,t,c])=><Btn key={h} big c={c} onClick={()=>{unlock();location.hash=h}}>{t}</Btn>)}</div><InstallBtn/></div>;
+}
+let deferred=null;addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e});
+function InstallBtn(){const [s,setS]=useState(0);useEffect(()=>{const i=setInterval(()=>setS(x=>x+1),1500);return()=>clearInterval(i)},[]);return deferred?<Btn c="var(--mg)" onClick={()=>{deferred.prompt();deferred=null;setS(s+1)}}>📲 Instalar app</Btn>:null}
+
+function Login({route,allowed,onLogin,me,logout}){
+  const [u,setU]=useState(''),[p,setP]=useState(''),[busy,setBusy]=useState(false),[err,setErr]=useState('');
+  const titles={admin:'Administrador General',maint_admin:'Admin. Mantenimiento y Locativos',aseo:'Servicio / Aseo',mant:'Mantenimiento y Jardinería',entregas:'Entregas'};
+  const go=async e=>{e.preventDefault();unlock();setBusy(true);setErr('');
+    const {data,error}=await sb.rpc('app_login',{p_user:u,p_pin:p});setBusy(false);
+    if(error)return setErr('Error de conexión: '+error.message);
+    if(!data)return setErr('Usuario o clave incorrectos');
+    if(!allowed.includes(data.role))return setErr('Este usuario no pertenece a esta sección');
+    onLogin(data)};
+  return <div className="home"><form className="glass" onSubmit={go} style={{width:'min(380px,92vw)'}}>
+    <div style={{fontSize:54,animation:'float 3s infinite'}}>{{admin:'👑',maint_admin:'🛠',aseo:'🧹',mant:'🔧',entregas:'🚚'}[route]}</div>
+    <h2>{titles[route]}</h2>
+    <F l="Usuario"><input value={u} onChange={e=>setU(e.target.value)} autoCapitalize="none" autoFocus/></F>
+    <F l="Clave"><input type="password" value={p} onChange={e=>setP(e.target.value)} inputMode="text"/></F>
+    {err&&<p style={{color:'var(--rd)'}}>{err}</p>}
+    <div className="row" style={{marginTop:14}}><Btn type="submit" disabled={busy} className="sp">{busy?'Validando…':'Entrar'}</Btn><Btn type="button" c="#64748b" onClick={()=>location.hash=''}>Inicio</Btn></div>
+    {me&&<p className="muted" style={{fontSize:12}}>Sesión activa: {me.name} ({ROLE[me.role]}) — <a href="#" onClick={e=>{e.preventDefault();logout()}}>cerrar</a></p>}
+  </form></div>;
+}
+
+/* ============ Alertas: notificaciones + sirena ============ */
+function visible(n,me){
+  if(n.by===me.id)return false;
+  if(me.role==='admin')return !n.chat||n.toRole==='admin';
+  if(n.chat)return n.toRole===me.role;
+  if(n.toRole)return n.toRole===me.role;
+  if(me.role==='maint_admin')return n.dept==='mantenimiento'||n.dept==='sistemas';
+  if(me.role==='aseo')return n.dept==='aseo'&&(!n.targets?.length||n.targets.includes(me.id));
+  if(me.role==='driver'||me.role==='aux')return n.dept==='entregas'&&n.targets?.includes(me.id);
+  return (n.dept==='mantenimiento'||n.dept==='sistemas')&&n.targets?.includes(me.id);
+}
+function Shell({children}){
+  const {me,notifs,logout}=useC();
+  const seen=useRef(null),[alarm,setAlarm]=useState(null),start=useRef(Date.now());
+  const vis=useMemo(()=>notifs.filter(n=>visible(n,me)).sort((a,b)=>b.ts-a.ts),[notifs,me]);
+  useEffect(()=>{
+    if(seen.current===null){seen.current=new Set(notifs.map(n=>n.id));if(notifs.length||Date.now()-start.current>2500)return}
+    notifs.forEach(n=>{if(seen.current.has(n.id))return;seen.current.add(n.id);if(n.ts<start.current-60000||!visible(n,me))return;
+      sysNotify(n.dept==='aseo'?'🧹 Aseo':n.dept==='entregas'?'🚚 Entregas':n.chat?'💬 Chat':'🔧 Mantenimiento',n.text,n.loud);
+      if(n.loud){setAlarm(n);startSiren()}else beep()});
+  },[notifs]);
+  const ack=()=>{stopSiren();setAlarm(null)};
+  return <><div style={{position:'relative',zIndex:2}}>{children}</div>
+    {alarm&&<div className="alarm"><div className="ic">🚨</div><h1>{alarm.text}</h1><Btn big c="#fff" onClick={ack}>ENTENDIDO — silenciar</Btn></div>}</>;
+}
+function TopBar({title,tabs,tab,setTab,extra}){
+  const {me,logout,notifs}=useC();
+  const [lastSeen,setLS]=useState(()=>+localStorage.getItem('cda_ls')||0);
+  const cnt=notifs.filter(n=>visible(n,me)&&n.ts>lastSeen).length;
+  useEffect(()=>{if(tab==='alertas'){const t=Date.now();localStorage.setItem('cda_ls',t);setLS(t)}},[tab,notifs.length]);
+  return <><header className="top"><h1>{title}</h1><span className="sp"/><span className="muted" style={{fontSize:13}}>{me.name}</span>{extra}<InstallBtn/><Btn sm c="var(--rd)" onClick={logout}>Salir</Btn></header>
+  {tabs&&<div className="tabs">{tabs.map(([k,l])=><Btn key={k} sm c={tab===k?'var(--mg)':'var(--cy)'} onClick={()=>setTab(k)}>{l}{k==='alertas'&&cnt>0?` 🔴${cnt}`:''}</Btn>)}</div>}</>;
+}
+
+/* ============ Habitaciones ============ */
+function FloatBubbles({list}){const now=useNow();return <div id="fbs">{list.filter(r=>r.status==='proceso').map(r=><div key={r.id} className="fb"><small>HAB {r.number}</small><b>{fmt(now-r.startedAt)}</b></div>)}</div>}
+function RoomCard({r,children,onClick}){
+  const {users}=useC();const now=useNow();const s=ST[r.status]||ST.disponible;
+  const names=(r.assignedTo||[]).map(i=>users.find(u=>u.id===i)?.name).filter(Boolean).join(', ');
+  return <div className={'room '+r.status} style={{'--c':s.c}} onClick={onClick}>
+    <div className="rn">{r.number}</div><div className="rs">{s.l}</div>
+    {r.status==='proceso'&&<><div className="bubble">⏱ {fmt(now-r.startedAt)}</div><div className="muted" style={{fontSize:12}}>{r.startedByName}</div></>}
+    {names&&<div className="muted" style={{fontSize:11,marginTop:3}}>👤 {names}</div>}
+    <div className="acts">{children}</div></div>;
+}
+function AdminRooms(){
+  const {rooms,users,notify,msg}=useC();
+  const [a,setA]=useState(''),[b,setB]=useState(''),[asg,setAsg]=useState(null),[qr,setQr]=useState(null);
+  const aseo=users.filter(u=>u.role==='aseo');
+  const addRooms=()=>{const x=+a,y=+(b||a);if(!x||y<x||y-x>300)return msg('Rango inválido');DB.many('rooms',Array.from({length:y-x+1},(_,i)=>['h'+(x+i),{number:String(x+i),status:'disponible',assignedTo:[]}]).filter(([id])=>!rooms.find(r=>r.id===id)));setA('');setB('')};
+  const release=r=>{DB.set('rooms',r.id,{status:'limpieza',releasedAt:Date.now(),startedAt:null});notify({dept:'aseo',loud:true,text:`Habitación ${r.number} liberada — ¡a limpiar!`,targets:r.assignedTo||[]});msg('Liberada: alerta enviada al personal de aseo')};
+  const sorted=[...rooms].sort((x,y)=>x.number.localeCompare(y.number,undefined,{numeric:true}));
+  return <div>
+    <div className="row" style={{marginBottom:10}}><b>Agregar habitaciones</b><input style={{width:90}} placeholder="Desde" value={a} onChange={e=>setA(e.target.value)} inputMode="numeric"/><input style={{width:90}} placeholder="Hasta" value={b} onChange={e=>setB(e.target.value)} inputMode="numeric"/><Btn sm c="var(--gr)" onClick={addRooms}>＋ Crear</Btn>
+      <span className="sp"/>{Object.entries(ST).map(([k,s])=><Chip key={k} c={s.c}>{s.l}: {rooms.filter(r=>r.status===k).length}</Chip>)}</div>
+    {!rooms.length&&<p className="muted">Crea habitaciones con el rango de números (ej. 101 a 120).</p>}
+    <div className="grid">{sorted.map(r=><RoomCard key={r.id} r={r}>
+      {r.status==='ocupada'&&<Btn sm c="var(--rd)" onClick={()=>release(r)}>🔔 Liberar</Btn>}
+      {r.status==='disponible'&&<Btn sm c="var(--bl)" onClick={()=>DB.set('rooms',r.id,{status:'ocupada'})}>Ocupar</Btn>}
+      <Btn sm onClick={()=>setAsg(r)}>👤</Btn><Btn sm c="var(--mg)" onClick={()=>setQr(r)}>QR</Btn>
+      <Btn sm c="#64748b" onClick={()=>confirm('¿Eliminar hab. '+r.number+'?')&&DB.del('rooms',r.id)}>🗑</Btn></RoomCard>)}</div>
+    <FloatBubbles list={rooms}/>
+    {asg&&<Modal title={'Asignar personal — Hab. '+asg.number} onClose={()=>setAsg(null)}><Pick users={aseo} value={asg.assignedTo||[]} onChange={v=>{DB.set('rooms',asg.id,{assignedTo:v});setAsg({...asg,assignedTo:v})}}/><p className="muted">Sin asignar = la alerta llega a todo el personal de aseo.</p></Modal>}
+    {qr&&<Modal title={'QR Hab. '+qr.number} onClose={()=>setQr(null)}><QRPrint r={qr}/></Modal>}
+  </div>;
+}
+const roomUrl=r=>location.href.split('#')[0]+'#servicio?room='+r.id;
+function QRPrint({r}){return <div style={{textAlign:'center'}} className="qrc"><h2>Habitación {r.number}</h2><QR text={roomUrl(r)} size={200}/><p className="muted">Escanear al iniciar y finalizar el aseo</p></div>}
+function QRSheet(){const {rooms}=useC();return <div><Btn className="noprint" onClick={()=>window.print()}>🖨 Imprimir todos</Btn><div className="grid" style={{marginTop:12}}>{[...rooms].sort((a,b)=>a.number.localeCompare(b.number,undefined,{numeric:true})).map(r=><div key={r.id} className="glass qrc" style={{textAlign:'center'}}><QRPrint r={r}/></div>)}</div></div>}
+
+function CleaningStats(){
+  const {cleanings,users,rooms}=useC();const [w,setW]=useState('');
+  const list=cleanings.filter(c=>!w||c.workerId===w).sort((a,b)=>b.end-a.end);
+  const avg=a=>a.length?a.reduce((s,c)=>s+c.dur,0)/a.length:0;
+  const by=users.filter(u=>u.role==='aseo').map(u=>{const l=cleanings.filter(c=>c.workerId===u.id);return{u,n:l.length,avg:avg(l),min:l.length?Math.min(...l.map(c=>c.dur)):0}});
+  const hoy=cleanings.filter(c=>c.day===today());
+  return <div><div className="grid"><Stat c="var(--gr)" v={hoy.length} l="Habitaciones limpiadas hoy"/><Stat c="var(--cy)" v={fmt(avg(cleanings))} l="Tiempo promedio por habitación"/><Stat c="var(--am)" v={rooms.filter(r=>r.status==='proceso').length} l="En limpieza ahora"/><Stat c="var(--rd)" v={rooms.filter(r=>r.status==='limpieza').length} l="Por limpiar"/></div>
+    <h3>Por trabajador</h3><div className="tw"><table><thead><tr><th>Trabajador</th><th>Aseos</th><th>Promedio</th><th>Más rápido</th></tr></thead><tbody>{by.map(x=><tr key={x.u.id}><td>{x.u.name}</td><td>{x.n}</td><td>{x.n?fmt(x.avg):'—'}</td><td>{x.n?fmt(x.min):'—'}</td></tr>)}</tbody></table></div>
+    <h3>Registros</h3><select value={w} onChange={e=>setW(e.target.value)} style={{maxWidth:260}}><option value="">Todos</option>{users.filter(u=>u.role==='aseo').map(u=><option key={u.id} value={u.id}>{u.name}</option>)}</select>
+    <div className="tw"><table><thead><tr><th>Hab.</th><th>Trabajador</th><th>Inicio</th><th>Fin</th><th>Duración</th></tr></thead><tbody>{list.slice(0,200).map(c=><tr key={c.id}><td><b>{c.number}</b></td><td>{c.workerName}</td><td>{dfmt(c.start)}</td><td>{dfmt(c.end)}</td><td>{fmt(c.dur)}</td></tr>)}</tbody></table></div></div>;
+}
+
+/* ============ Personal (CRUD) ============ */
+function Workers({roles}){
+  const {users,msg}=useC();const [ed,setEd]=useState(null);
+  const list=users.filter(u=>roles.includes(u.role));
+  const save=async()=>{const u=ed;if(!u.name||!u.user||!u.pin)return msg('Nombre, usuario y clave son obligatorios');
+    if(users.find(x=>x.id!==u.id&&x.user?.toLowerCase()===u.user.toLowerCase()))return msg('Ese usuario ya existe');
+    await DB.set('users',u.id||uid(),{name:u.name,user:u.user.trim(),pin:u.pin,role:u.role,phone:u.phone||'',active:u.active!==false});setEd(null)};
+  return <div><Btn c="var(--gr)" onClick={()=>setEd({name:'',user:'',pin:'',role:roles[0],phone:'',active:true})}>＋ Nuevo</Btn>
+    <div className="grid2" style={{marginTop:12}}>{list.map(u=><div key={u.id} className="glass"><div className="row"><b className="sp">{u.name}</b>{u.active===false&&<Chip c="var(--rd)">inactivo</Chip>}</div><div className="muted">{ROLE[u.role]} · usuario: {u.user}</div><div className="muted">📞 {u.phone||'—'}</div>
+      <div className="row" style={{marginTop:8}}><Btn sm onClick={()=>setEd(u)}>✏ Editar</Btn><Btn sm c="#64748b" onClick={()=>confirm('¿Eliminar a '+u.name+'?')&&DB.del('users',u.id)}>🗑</Btn></div></div>)}</div>
+    {ed&&<Modal title={ed.id?'Editar':'Nuevo trabajador'} onClose={()=>setEd(null)}>
+      <F l="Nombre"><input value={ed.name} onChange={e=>setEd({...ed,name:e.target.value})}/></F>
+      <div className="row"><div className="sp"><F l="Usuario"><input value={ed.user} autoCapitalize="none" onChange={e=>setEd({...ed,user:e.target.value})}/></F></div><div className="sp"><F l="Clave"><input value={ed.pin} onChange={e=>setEd({...ed,pin:e.target.value})}/></F></div></div>
+      <F l="Rol"><select value={ed.role} onChange={e=>setEd({...ed,role:e.target.value})}>{roles.map(r=><option key={r} value={r}>{ROLE[r]}</option>)}</select></F>
+      <F l="Teléfono"><input value={ed.phone||''} onChange={e=>setEd({...ed,phone:e.target.value})}/></F>
+      <label className="f"><input type="checkbox" style={{width:'auto'}} checked={ed.active!==false} onChange={e=>setEd({...ed,active:e.target.checked})}/> Activo</label>
+      <div className="row" style={{marginTop:12}}><Btn c="var(--gr)" onClick={save}>Guardar</Btn></div></Modal>}</div>;
+}
+
+/* ============ Chat / Alertas ============ */
+function Chat(){
+  const {me,chat,notify}=useC();const [t,setT]=useState(''),box=useRef();
+  const list=[...chat].sort((a,b)=>a.ts-b.ts);
+  useEffect(()=>{box.current&&(box.current.scrollTop=1e9)},[list.length]);
+  const send=()=>{if(!t.trim())return;const text=t.trim();setT('');DB.set('chat',uid(),{from:me.id,name:me.name,role:me.role,text,ts:Date.now()});notify({chat:true,toRole:me.role==='admin'?'maint_admin':'admin',text:`💬 ${me.name}: ${text}`})};
+  return <div><h3>Chat Admin General ↔ Admin Mantenimiento</h3><div className="chat glass pn" ref={box}>{list.map(m=><div key={m.id} className={'msg'+(m.from===me.id?' me':'')}><small>{m.name} · {dfmt(m.ts)}</small>{m.text}</div>)}</div>
+    <div className="row" style={{marginTop:8}}><input className="sp" value={t} onChange={e=>setT(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()} placeholder="Escribe un mensaje…"/><Btn onClick={send}>Enviar ➤</Btn></div></div>;
+}
+function Alerts(){
+  const {me,notifs}=useC();const l=notifs.filter(n=>visible(n,me)).sort((a,b)=>b.ts-a.ts).slice(0,100);
+  const ic=n=>n.chat?'💬':n.dept==='aseo'?'🧹':n.dept==='entregas'?'🚚':'🔧';
+  return <div><h3>Notificaciones</h3>{!l.length&&<p className="muted">Sin notificaciones.</p>}{l.map(n=><div key={n.id} className="glass" style={{marginBottom:8,borderColor:n.loud?'var(--rd)':undefined}}><span>{ic(n)} {n.text}</span><div className="muted" style={{fontSize:12}}>{dfmt(n.ts)} · {n.dept||'chat'}</div></div>)}</div>;
+}
+
+/* ============ Tareas ============ */
+const TS={pendiente:{c:'#94a3b8',l:'Pendiente'},en_curso:{c:'#fbbf24',l:'En curso'},completada:{c:'#22c55e',l:'Completada'}};
+const overdue=t=>t.end&&t.end<today()&&t.status!=='completada';
+function TaskForm({t,onClose}){
+  const {users,types,equip,notify,msg}=useC();
+  const [f,setF]=useState(t||{title:'',dept:'mantenimiento',type:types[0]||'',equipType:'',desc:'',assignedTo:[],start:today(),end:today(),progress:0,status:'pendiente',log:[]});
+  const [ot,setOt]=useState(''),[oe,setOe]=useState('');
+  const staff=users.filter(u=>['mantenimiento','sistemas'].includes(u.role));
+  const save=async()=>{
+    let type=f.type==='__otro'?ot.trim():f.type,eq=f.equipType==='__otro'?oe.trim():f.equipType;
+    if(!f.title||!type)return msg('Título y tipo son obligatorios');
+    if(f.type==='__otro'&&!types.includes(type))await DB.set('catalog','types',{items:[...types,type]});
+    if(f.equipType==='__otro'&&eq&&!equip.includes(eq))await DB.set('catalog','equip',{items:[...equip,eq]});
+    const id=f.id||uid();const status=f.progress>=100?'completada':f.progress>0&&f.status==='pendiente'?'en_curso':f.status;
+    await DB.set('tasks',id,{...f,type,equipType:eq,status,id:undefined,created:f.created||Date.now()});
+    notify({dept:f.dept,text:`${f.id?'Tarea actualizada':'Nueva tarea'}: ${f.title} (${type})`,targets:f.assignedTo});onClose()};
+  return <Modal title={f.id?'Editar tarea':'Nueva tarea'} onClose={onClose}>
+    <F l="Título"><input value={f.title} onChange={e=>setF({...f,title:e.target.value})}/></F>
+    <div className="row"><div className="sp"><F l="Departamento"><select value={f.dept} onChange={e=>setF({...f,dept:e.target.value})}><option value="mantenimiento">Mantenimiento / Locativos</option><option value="sistemas">Sistemas</option></select></F></div>
+      <div className="sp"><F l="Tipo de tarea"><select value={f.type} onChange={e=>setF({...f,type:e.target.value})}>{types.map(x=><option key={x}>{x}</option>)}<option value="__otro">➕ Otro…</option></select></F></div></div>
+    {f.type==='__otro'&&<input placeholder="Nuevo tipo de tarea" value={ot} onChange={e=>setOt(e.target.value)}/>}
+    <F l="Tipo de equipo (opcional)"><select value={f.equipType||''} onChange={e=>setF({...f,equipType:e.target.value})}><option value="">—</option>{equip.map(x=><option key={x}>{x}</option>)}<option value="__otro">➕ Otro…</option></select></F>
+    {f.equipType==='__otro'&&<input placeholder="Nuevo tipo de equipo" value={oe} onChange={e=>setOe(e.target.value)}/>}
+    <F l="Descripción"><textarea rows={2} value={f.desc} onChange={e=>setF({...f,desc:e.target.value})}/></F>
+    <F l="Personal asignado"><Pick users={staff} value={f.assignedTo} onChange={v=>setF({...f,assignedTo:v})}/></F>
+    <div className="row"><div className="sp"><F l="Fecha inicio"><input type="date" value={f.start} onChange={e=>setF({...f,start:e.target.value})}/></F></div><div className="sp"><F l="Fecha fin"><input type="date" value={f.end} onChange={e=>setF({...f,end:e.target.value})}/></F></div></div>
+    <F l={`Porcentaje de ejecución: ${f.progress}%`}><input type="range" min="0" max="100" step="5" value={f.progress} onChange={e=>setF({...f,progress:+e.target.value})}/></F>
+    <F l="Estado"><select value={f.status} onChange={e=>setF({...f,status:e.target.value})}>{Object.entries(TS).map(([k,s])=><option key={k} value={k}>{s.l}</option>)}</select></F>
+    <div className="row" style={{marginTop:12}}><Btn c="var(--gr)" onClick={save}>Guardar</Btn></div></Modal>;
+}
+function TaskUpdate({t,onClose}){
+  const {me,notify}=useC();const [p,setP]=useState(t.progress||0),[n,setN]=useState('');
+  const save=()=>{const status=p>=100?'completada':p>0?'en_curso':'pendiente';
+    DB.set('tasks',t.id,{progress:p,status,log:[...(t.log||[]),{ts:Date.now(),by:me.name,text:n||`Avance ${p}%`,p}],...(p>0&&!t.startedAt?{startedAt:Date.now()}:{}),...(p>=100?{finishedAt:Date.now()}:{})});
+    notify({dept:t.dept,text:`${me.name} reporta "${t.title}": ${p}%${n?' — '+n:''}`,toRole:'maint_admin'});onClose()};
+  return <Modal title={'Reportar avance — '+t.title} onClose={onClose}><F l={`Avance: ${p}%`}><input type="range" min="0" max="100" step="5" value={p} onChange={e=>setP(+e.target.value)}/></F><F l="Nota / actividad realizada"><textarea rows={3} value={n} onChange={e=>setN(e.target.value)}/></F><div className="row" style={{marginTop:10}}><Btn c="var(--gr)" onClick={save}>Guardar avance</Btn></div></Modal>;
+}
+function TasksView({readOnly,mine}){
+  const {tasks,users,me}=useC();const [ed,setEd]=useState(null),[up,setUp]=useState(null),[fl,setFl]=useState('');
+  const list=tasks.filter(t=>(!mine||t.assignedTo?.includes(me.id))&&(!fl||t.status===fl)).sort((a,b)=>(b.created||0)-(a.created||0));
+  return <div><div className="row">{!readOnly&&!mine&&<Btn c="var(--gr)" onClick={()=>setEd(false)}>＋ Nueva tarea</Btn>}<select style={{maxWidth:200}} value={fl} onChange={e=>setFl(e.target.value)}><option value="">Todos los estados</option>{Object.entries(TS).map(([k,s])=><option key={k} value={k}>{s.l}</option>)}</select></div>
+  {!list.length&&<p className="muted">Sin tareas.</p>}
+  <div className="grid2" style={{marginTop:12}}>{list.map(t=><div key={t.id} className="glass" style={overdue(t)?{borderColor:'var(--rd)'}:null}>
+    <div className="row"><b className="sp">{t.title}</b><Chip c={TS[t.status]?.c}>{TS[t.status]?.l}</Chip></div>
+    <div className="muted" style={{fontSize:13}}>{t.type}{t.equipType?' · '+t.equipType:''} · {t.dept}</div>
+    {t.desc&&<div style={{margin:'4px 0'}}>{t.desc}</div>}
+    <div className="muted" style={{fontSize:12.5}}>📅 {t.start} → {t.end} {overdue(t)&&<Chip c="var(--rd)">vencida</Chip>}</div>
+    <div className="muted" style={{fontSize:12.5}}>👤 {(t.assignedTo||[]).map(i=>users.find(u=>u.id===i)?.name).filter(Boolean).join(', ')||'Sin asignar'}</div>
+    <Progress v={t.progress} label="Ejecución"/>
+    {!!t.log?.length&&<details><summary className="muted">Bitácora ({t.log.length})</summary>{t.log.slice().reverse().map((l,i)=><div key={i} style={{fontSize:12.5}}>• {dfmt(l.ts)} {l.by}: {l.text}</div>)}</details>}
+    <div className="row" style={{marginTop:8}}>{mine&&<Btn sm c="var(--am)" onClick={()=>setUp(t)}>📝 Reportar avance</Btn>}{!readOnly&&!mine&&<><Btn sm onClick={()=>setEd(t)}>✏</Btn><Btn sm c="#64748b" onClick={()=>confirm('¿Eliminar tarea?')&&DB.del('tasks',t.id)}>🗑</Btn></>}</div></div>)}</div>
+  {ed!==null&&<TaskForm t={ed||undefined} onClose={()=>setEd(null)}/>}{up&&<TaskUpdate t={up} onClose={()=>setUp(null)}/>}</div>;
+}
+
+/* ============ Obras civiles ============ */
+const wProg=w=>w.activities?.length?w.activities.reduce((s,a)=>s+(+a.progress||0),0)/w.activities.length:(+w.progress||0);
+const planned=(s,e)=>{if(!s||!e)return 0;const a=new Date(s),b=new Date(e),n=new Date(today());return clamp((n-a)/Math.max(1,(b-a))*100,0,100)};
+const days=(s,e)=>s&&e?Math.round((new Date(e)-new Date(s))/864e5)+1:0;
+function WorkForm({w,onClose}){
+  const {users,notify,msg}=useC();
+  const [f,setF]=useState(w||{name:'',desc:'',assignedTo:[],start:today(),end:today(),progress:0,activities:[]});
+  const staff=users.filter(u=>['mantenimiento','sistemas'].includes(u.role));
+  const setAct=(i,k,v)=>setF({...f,activities:f.activities.map((a,j)=>j===i?{...a,[k]:v}:a)});
+  const save=async()=>{if(!f.name)return msg('Nombre de la obra requerido');const id=f.id||uid();await DB.set('works',id,{...f,id:undefined,created:f.created||Date.now()});
+    notify({dept:'mantenimiento',text:`Obra ${f.id?'actualizada':'creada'}: ${f.name}`,targets:f.assignedTo});onClose()};
+  return <Modal title={f.id?'Editar obra':'Nueva obra civil'} onClose={onClose}>
+    <F l="Nombre de la obra"><input value={f.name} onChange={e=>setF({...f,name:e.target.value})}/></F>
+    <F l="Descripción"><textarea rows={2} value={f.desc} onChange={e=>setF({...f,desc:e.target.value})}/></F>
+    <div className="row"><div className="sp"><F l="Inicio"><input type="date" value={f.start} onChange={e=>setF({...f,start:e.target.value})}/></F></div><div className="sp"><F l="Fin"><input type="date" value={f.end} onChange={e=>setF({...f,end:e.target.value})}/></F></div></div>
+    <F l="Personal asignado"><Pick users={staff} value={f.assignedTo} onChange={v=>setF({...f,assignedTo:v})}/></F>
+    {!f.activities.length&&<F l={`Avance manual: ${f.progress}%`}><input type="range" min="0" max="100" step="5" value={f.progress} onChange={e=>setF({...f,progress:+e.target.value})}/></F>}
+    <h3>Cronograma de actividades</h3>
+    {f.activities.map((a,i)=><div key={i} className="glass" style={{marginBottom:8,padding:10}}>
+      <input placeholder="Actividad" value={a.name} onChange={e=>setAct(i,'name',e.target.value)}/>
+      <div className="row"><div className="sp"><label className="f">Inicio</label><input type="date" value={a.start} onChange={e=>setAct(i,'start',e.target.value)}/></div><div className="sp"><label className="f">Fin</label><input type="date" value={a.end} onChange={e=>setAct(i,'end',e.target.value)}/></div></div>
+      <label className="f">Responsable</label><select value={a.who||''} onChange={e=>setAct(i,'who',e.target.value)}><option value="">—</option>{staff.map(u=><option key={u.id} value={u.id}>{u.name}</option>)}</select>
+      <label className="f">Avance {a.progress}% · {days(a.start,a.end)} día(s)</label><input type="range" min="0" max="100" step="5" value={a.progress} onChange={e=>setAct(i,'progress',+e.target.value)}/>
+      <Btn sm c="var(--rd)" onClick={()=>setF({...f,activities:f.activities.filter((_,j)=>j!==i)})}>Quitar</Btn></div>)}
+    <Btn sm c="var(--gr)" onClick={()=>setF({...f,activities:[...f.activities,{name:'',start:f.start,end:f.end,progress:0,who:''}]})}>＋ Actividad</Btn>
+    <div className="row" style={{marginTop:12}}><Btn c="var(--gr)" onClick={save}>Guardar obra</Btn></div></Modal>;
+}
+function WorksView({readOnly,mine}){
+  const {works,users,me}=useC();const [ed,setEd]=useState(null);
+  const list=works.filter(w=>!mine||w.assignedTo?.includes(me.id)).sort((a,b)=>(b.created||0)-(a.created||0));
+  return <div>{!readOnly&&<Btn c="var(--gr)" onClick={()=>setEd(false)}>＋ Nueva obra civil</Btn>}{!list.length&&<p className="muted">Sin obras.</p>}
+  <div className="grid2" style={{marginTop:12}}>{list.map(w=>{const p=wProg(w),pl=planned(w.start,w.end),span=Math.max(1,new Date(w.end)-new Date(w.start));
+    return <div key={w.id} className="glass"><div className="row"><b className="sp">🏗 {w.name}</b>{p<pl-10&&p<100&&<Chip c="var(--rd)">atrasada</Chip>}{p>=100&&<Chip c="var(--gr)">terminada</Chip>}</div>
+    <div className="muted" style={{fontSize:12.5}}>📅 {w.start} → {w.end} · {days(w.start,w.end)} días · 👤 {(w.assignedTo||[]).map(i=>users.find(u=>u.id===i)?.name).filter(Boolean).join(', ')||'—'}</div>
+    <Progress v={p} label="Avance real"/><Progress v={pl} label="Avance planeado (tiempo)"/>
+    {w.activities?.map((a,i)=>{const l=clamp((new Date(a.start)-new Date(w.start))/span*100,0,100),wd=clamp((new Date(a.end)-new Date(a.start)+864e5)/span*100,2,100-l);
+      return <div key={i} style={{marginTop:6}}><div className="row" style={{fontSize:12.5}}><span className="sp">{a.name||'Actividad'} <span className="muted">({a.start}→{a.end}{a.who?' · '+users.find(u=>u.id===a.who)?.name:''})</span></span><b>{a.progress}%</b></div><div className="gantt"><i style={{left:l+'%',width:wd+'%',opacity:.35+a.progress/160}}/></div></div>})}
+    {!readOnly&&<div className="row" style={{marginTop:8}}><Btn sm onClick={()=>setEd(w)}>✏ Editar</Btn><Btn sm c="#64748b" onClick={()=>confirm('¿Eliminar obra?')&&DB.del('works',w.id)}>🗑</Btn></div>}</div>})}</div>
+  {ed!==null&&<WorkForm w={ed||undefined} onClose={()=>setEd(null)}/>}</div>;
+}
+
+/* ============ Catálogos ============ */
+function Catalog(){
+  const {types,equip}=useC();const [a,setA]=useState(''),[b,setB]=useState('');
+  const Box=({title,id,items,v,setV})=><div className="glass"><h3>{title}</h3><div className="row">{items.map(x=><Chip key={x} c="var(--cy)">{x} <a href="#" style={{color:'var(--rd)',textDecoration:'none'}} onClick={e=>{e.preventDefault();DB.set('catalog',id,{items:items.filter(y=>y!==x)})}}>✕</a></Chip>)}</div>
+    <div className="row" style={{marginTop:10}}><input className="sp" value={v} placeholder="Agregar otro…" onChange={e=>setV(e.target.value)}/><Btn sm c="var(--gr)" onClick={()=>{if(v.trim()&&!items.includes(v.trim())){DB.set('catalog',id,{items:[...items,v.trim()]});setV('')}}}>＋</Btn></div>
+    <p className="muted" style={{fontSize:12}}>Renombrar: quita y agrega con el nuevo nombre.</p></div>;
+  return <div className="grid2"><Box title="Tipos de tarea" id="types" items={types} v={a} setV={setA}/><Box title="Tipos de equipo" id="equip" items={equip} v={b} setV={setB}/></div>;
+}
+
+/* ============ Resumen de mantenimiento ============ */
+function MaintOverview(){
+  const {tasks,works,users}=useC();
+  const done=tasks.filter(t=>t.status==='completada').length,cur=tasks.filter(t=>t.status==='en_curso').length,ov=tasks.filter(overdue).length;
+  const avgT=tasks.length?tasks.reduce((s,t)=>s+(+t.progress||0),0)/tasks.length:0,avgW=works.length?works.reduce((s,w)=>s+wProg(w),0)/works.length:0;
+  const types=[...new Set(tasks.map(t=>t.type))].map(ty=>{const l=tasks.filter(t=>t.type===ty);return{ty,n:l.length,p:l.reduce((s,t)=>s+(+t.progress||0),0)/l.length}});
+  const ppl=users.filter(u=>['mantenimiento','sistemas'].includes(u.role)).map(u=>{const l=tasks.filter(t=>t.assignedTo?.includes(u.id));return{u,n:l.length,d:l.filter(t=>t.status==='completada').length,p:l.length?l.reduce((s,t)=>s+(+t.progress||0),0)/l.length:0}});
+  return <div><div className="grid"><Stat c="var(--cy)" v={tasks.length} l="Tareas totales"/><Stat c="var(--gr)" v={done} l="Completadas"/><Stat c="var(--am)" v={cur} l="En curso"/><Stat c="var(--rd)" v={ov} l="Vencidas"/><Stat c="var(--mg)" v={Math.round(tasks.length?done/tasks.length*100:0)+'%'} l="% de ejecución (completadas)"/><Stat c="var(--bl)" v={Math.round(avgT)+'%'} l="Avance promedio tareas"/><Stat c="var(--am)" v={works.length} l="Obras civiles"/><Stat c="var(--gr)" v={Math.round(avgW)+'%'} l="Avance promedio de obras"/></div>
+  <div className="grid2" style={{marginTop:12}}><div className="glass"><h3>Por tipo de tarea</h3>{types.map(x=><div key={x.ty} style={{marginBottom:8}}><Progress v={x.p} label={`${x.ty} (${x.n})`}/></div>)}{!types.length&&<span className="muted">Sin datos</span>}</div>
+  <div className="glass"><h3>Por trabajador</h3>{ppl.map(x=><div key={x.u.id} style={{marginBottom:8}}><Progress v={x.p} label={`${x.u.name} · ${x.d}/${x.n} completadas`}/></div>)}{!ppl.length&&<span className="muted">Sin personal</span>}</div>
+  <div className="glass"><h3>Avance de obras</h3>{works.map(w=><div key={w.id} style={{marginBottom:8}}><Progress v={wProg(w)} label={w.name}/></div>)}{!works.length&&<span className="muted">Sin obras</span>}</div></div></div>;
+}
+
+/* ============ App Admin Mantenimiento ============ */
+function MaintAdminApp(){
+  const [tab,setTab]=useState('resumen');
+  const tabs=[['resumen','📊 Resumen'],['tareas','🔧 Tareas'],['obras','🏗 Obras'],['cat','🗂 Catálogos'],['personal','👥 Personal'],['chat','💬 Chat'],['alertas','🔔 Alertas']];
+  return <><TopBar title="Admin Mantenimiento y Locativos" tabs={tabs} tab={tab} setTab={setTab}/><div className="wrap">
+    {tab==='resumen'&&<MaintOverview/>}{tab==='tareas'&&<TasksView/>}{tab==='obras'&&<WorksView/>}{tab==='cat'&&<Catalog/>}{tab==='personal'&&<Workers roles={['mantenimiento','sistemas']}/>}{tab==='chat'&&<Chat/>}{tab==='alertas'&&<Alerts/>}</div></>;
+}
+function MaintWorker(){
+  const [tab,setTab]=useState('tareas');
+  return <><TopBar title="Mantenimiento y Jardinería" tabs={[['tareas','🔧 Mis tareas'],['obras','🏗 Mis obras'],['alertas','🔔 Alertas']]} tab={tab} setTab={setTab}/><div className="wrap">{tab==='tareas'&&<TasksView mine/>}{tab==='obras'&&<WorksView readOnly mine/>}{tab==='alertas'&&<Alerts/>}</div></>;
+}
+
+/* ============ App Servicio / Aseo ============ */
+function CleanApp({hash}){
+  const {me,rooms,notify,msg}=useC();
+  const [scan,setScan]=useState(false),[tab,setTab]=useState('hab'),handled=useRef('');
+  const mine=rooms.filter(r=>!(r.assignedTo?.length)||r.assignedTo.includes(me.id)).sort((a,b)=>a.number.localeCompare(b.number,undefined,{numeric:true}));
+  const start=r=>{
+    if(r.status==='proceso')return r.startedBy===me.id?msg('Ya iniciaste esta habitación — pulsa Finalizar'):msg('La está limpiando '+r.startedByName);
+    if(r.status!=='limpieza')return msg(`Hab. ${r.number}: no está liberada por recepción (${ST[r.status].l})`);
+    DB.set('rooms',r.id,{status:'proceso',startedAt:Date.now(),startedBy:me.id,startedByName:me.name});msg('⏱ Aseo iniciado — Hab. '+r.number)};
+  const finish=r=>{const end=Date.now(),dur=end-r.startedAt;
+    DB.set('cleanings',uid(),{roomId:r.id,number:r.number,workerId:me.id,workerName:me.name,start:r.startedAt,end,dur,day:today()});
+    DB.set('rooms',r.id,{status:'disponible',startedAt:null,startedBy:null,startedByName:null});
+    notify({dept:'aseo',text:`Hab. ${r.number} lista — ${me.name} tardó ${fmt(dur)}`,targets:[]});msg(`✅ Hab. ${r.number} disponible (${fmt(dur)})`)};
+  const onScan=text=>{const m=/room=([\w-]+)/.exec(text);const r=m?rooms.find(x=>x.id===m[1]):rooms.find(x=>x.number===String(text).trim());if(!r)return msg('QR no reconocido');
+    if(r.status==='proceso'&&r.startedBy===me.id)finish(r);else start(r)};
+  useEffect(()=>{const m=/room=([\w-]+)/.exec(hash);if(m&&rooms.length&&handled.current!==m[1]){handled.current=m[1];onScan(hash)}},[hash,rooms.length]);
+  const cl=useCol('cleanings');const my=cl.filter(c=>c.workerId===me.id&&c.day===today());
+  return <><TopBar title="Servicio · Aseo" tabs={[['hab','🛏 Habitaciones'],['hist','⏱ Mis tiempos'],['alertas','🔔 Alertas']]} tab={tab} setTab={setTab}/><div className="wrap">
+    {tab==='hab'&&<><div className="row" style={{marginBottom:10}}><Btn big c="var(--gr)" onClick={()=>setScan(true)}>📷 Escanear QR</Btn>{Object.entries(ST).map(([k,s])=><Chip key={k} c={s.c}>{s.l}: {mine.filter(r=>r.status===k).length}</Chip>)}</div>
+      <div className="grid">{mine.map(r=><RoomCard key={r.id} r={r}>{r.status==='proceso'&&r.startedBy===me.id&&<Btn c="var(--gr)" onClick={()=>finish(r)}>✔ Finalizar</Btn>}</RoomCard>)}</div>{!mine.length&&<p className="muted">No tienes habitaciones asignadas.</p>}</>}
+    {tab==='hist'&&<div className="glass"><h3>Hoy: {my.length} habitaciones</h3><div className="tw"><table><tbody>{my.sort((a,b)=>b.end-a.end).map(c=><tr key={c.id}><td><b>Hab. {c.number}</b></td><td>{dfmt(c.end)}</td><td>{fmt(c.dur)}</td></tr>)}</tbody></table></div></div>}
+    {tab==='alertas'&&<Alerts/>}</div><FloatBubbles list={mine.filter(r=>r.startedBy===me.id)}/>{scan&&<Scanner onClose={()=>setScan(false)} onText={t=>{setScan(false);onScan(t)}}/>}</>;
+}
+function Scanner({onClose,onText}){
+  const [man,setMan]=useState('');
+  useEffect(()=>{let q;try{q=new Html5Qrcode('reader');q.start({facingMode:'environment'},{fps:10,qrbox:230},t=>{q.stop().catch(()=>{});onText(t)},()=>{}).catch(()=>{})}catch(e){}
+    return()=>{try{q&&q.isScanning&&q.stop().catch(()=>{})}catch(e){}}},[]);
+  return <Modal title="Escanear QR de la habitación" onClose={onClose}><div id="reader" style={{width:'100%',minHeight:260}}/><F l="¿Sin cámara? Escribe el número"><div className="row"><input className="sp" value={man} onChange={e=>setMan(e.target.value)} inputMode="numeric"/><Btn onClick={()=>man&&onText(man)}>OK</Btn></div></F></Modal>;
+}
+
+/* ============ ENTREGAS: utilidades ============ */
+const collected=i=>{if(!['ok','novedad','parcial'].includes(i.status))return{cash:0,transfer:0,credit:0};
+  const ret=(i.returned||[]).reduce((s,p)=>s+p.qty*(p.price||0),0),net=Math.max(0,(+i.value||0)-ret),k=(+i.value)?net/(+i.value):1;
+  if(i.payType==='credito')return{cash:0,transfer:0,credit:net};
+  if(i.payType==='transferencia')return{cash:0,transfer:net,credit:0};
+  if(i.payType==='mixta')return{cash:(+i.cash||0)*k,transfer:(+i.transfer||0)*k,credit:0};
+  return{cash:net,transfer:0,credit:0}};
+const normKey=k=>String(k).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z]/g,'');
+function parseProducts(s){return String(s||'').split(/;|\n/).map(x=>x.trim()).filter(Boolean).map(x=>{const m=/^(.*?)\s*[x×]\s*(\d+(?:[.,]\d+)?)(?:\s*@\s*\$?([\d.,]+))?$/i.exec(x);return m?{name:m[1].trim(),qty:+m[2].replace(',','.'),price:+(m[3]||0).toString().replace(/[.,]/g,'')}:{name:x,qty:1,price:0}})}
+function parseSheet(rows){return rows.map(r=>{const o={};Object.keys(r).forEach(k=>o[normKey(k)]=r[k]);
+  const pay=normKey(o.tipopago||o.pago||o.tipo||o.metodo||'contado');const pt=pay.includes('cred')?'credito':pay.includes('trans')?'transferencia':pay.includes('mix')?'mixta':'contado';
+  return{number:String(o.factura||o.numero||o.nro||o.numerofactura||'').trim(),client:o.cliente||'',address:o.direccion||'',value:+String(o.valor||o.total||0).replace(/[^\d.]/g,'')||0,payType:pt,cash:+o.efectivo||0,transfer:+o.transferencia||0,products:parseProducts(o.productos||o.detalle)}}).filter(r=>r.number)}
+
+/* ============ ENTREGAS: formulario de ruta (admin) ============ */
+function RouteForm({onClose}){
+  const {users,msg,notify}=useC();
+  const [r,setR]=useState({name:'',date:today(),driverId:'',auxId:'',vehicle:''}),[inv,setInv]=useState([]);
+  const drivers=users.filter(u=>u.role==='driver'),auxs=users.filter(u=>u.role==='aux');
+  const blank=()=>({number:'',client:'',address:'',value:'',payType:'contado',cash:'',transfer:'',productsText:''});
+  const up=(i,k,v)=>setInv(inv.map((x,j)=>j===i?{...x,[k]:v}:x));
+  const file=async e=>{const f=e.target.files[0];if(!f)return;const wb=XLSX.read(await f.arrayBuffer());const rows=parseSheet(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''}));
+    if(!rows.length)return msg('No se encontraron facturas. Revisa los encabezados (use la plantilla).');
+    setInv([...inv,...rows.map(x=>({...x,productsText:x.products.map(p=>`${p.name} x${p.qty}${p.price?' @'+p.price:''}`).join('; ')}))]);msg(rows.length+' facturas cargadas');e.target.value=''};
+  const tpl=()=>{const ws=XLSX.utils.json_to_sheet([{Factura:'F-1001',Cliente:'Tienda La Esquina',Direccion:'Cra 10 # 20-30',Valor:250000,TipoPago:'mixta',Efectivo:100000,Transferencia:150000,Productos:'Arroz x10 @8000; Aceite x5 @14000'}]);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Facturas');XLSX.writeFile(wb,'plantilla_facturas.xlsx')};
+  const save=async()=>{if(!r.name||!r.driverId)return msg('Nombre de ruta y conductor requeridos');if(!inv.length)return msg('Agrega al menos una factura');
+    const id=uid();await DB.set('routes',id,{...r,status:'asignada',created:Date.now(),total:inv.length});
+    await DB.many('invoices',inv.map((x,i)=>[uid(),{routeId:id,order:i,number:x.number,client:x.client,address:x.address,value:+x.value||0,payType:x.payType,cash:+x.cash||0,transfer:+x.transfer||0,products:x.products||parseProducts(x.productsText),status:'pendiente'}]));
+    notify({dept:'entregas',text:`Nueva ruta asignada: ${r.name} (${inv.length} facturas)`,targets:[r.driverId,r.auxId].filter(Boolean)});onClose()};
+  return <Modal title="Nueva ruta" onClose={onClose}>
+    <div className="row"><div className="sp"><F l="Nombre de la ruta"><input value={r.name} onChange={e=>setR({...r,name:e.target.value})}/></F></div><div><F l="Fecha"><input type="date" value={r.date} onChange={e=>setR({...r,date:e.target.value})}/></F></div></div>
+    <div className="row"><div className="sp"><F l="Conductor"><select value={r.driverId} onChange={e=>setR({...r,driverId:e.target.value})}><option value="">—</option>{drivers.map(u=><option key={u.id} value={u.id}>{u.name}</option>)}</select></F></div><div className="sp"><F l="Auxiliar"><select value={r.auxId} onChange={e=>setR({...r,auxId:e.target.value})}><option value="">—</option>{auxs.map(u=><option key={u.id} value={u.id}>{u.name}</option>)}</select></F></div><div className="sp"><F l="Vehículo / placa"><input value={r.vehicle} onChange={e=>setR({...r,vehicle:e.target.value})}/></F></div></div>
+    <h3>Facturas ({inv.length})</h3>
+    <div className="row"><label className="btn sm" style={{'--c':'var(--bl)'}}>📄 Cargar Excel<input type="file" accept=".xlsx,.xls,.csv" hidden onChange={file}/></label><Btn sm c="#64748b" onClick={tpl}>⬇ Plantilla</Btn><Btn sm c="var(--gr)" onClick={()=>setInv([...inv,blank()])}>＋ Factura manual</Btn></div>
+    {inv.map((x,i)=><div key={i} className="glass" style={{margin:'8px 0',padding:10}}>
+      <div className="row"><input style={{width:120}} placeholder="N° factura" value={x.number} onChange={e=>up(i,'number',e.target.value)}/><input className="sp" placeholder="Cliente" value={x.client} onChange={e=>up(i,'client',e.target.value)}/><Btn sm c="var(--rd)" onClick={()=>setInv(inv.filter((_,j)=>j!==i))}>✕</Btn></div>
+      <input placeholder="Dirección" value={x.address} onChange={e=>up(i,'address',e.target.value)}/>
+      <div className="row"><input style={{width:120}} placeholder="Valor" inputMode="numeric" value={x.value} onChange={e=>up(i,'value',e.target.value)}/><select style={{width:150}} value={x.payType} onChange={e=>up(i,'payType',e.target.value)}>{Object.entries(PAYS).map(([k,l])=><option key={k} value={k}>{l}</option>)}</select>
+        {x.payType==='mixta'&&<><input style={{width:110}} placeholder="Efectivo" value={x.cash} onChange={e=>up(i,'cash',e.target.value)}/><input style={{width:110}} placeholder="Transfer." value={x.transfer} onChange={e=>up(i,'transfer',e.target.value)}/></>}</div>
+      <textarea rows={2} placeholder="Productos: Arroz x10 @8000; Aceite x5 @14000" value={x.productsText||''} onChange={e=>up(i,'productsText',e.target.value)}/></div>)}
+    <div className="row" style={{marginTop:12}}><Btn c="var(--gr)" onClick={save}>💾 Guardar ruta</Btn></div></Modal>;
+}
+
+/* ============ ENTREGAS: panel admin ============ */
+function DeliveriesAdmin({setGhost}){
+  const {routes,invoices,users,geo}=useC();const [sub,setSub]=useState('rutas'),[form,setForm]=useState(false),[sel,setSel]=useState('');
+  useEffect(()=>{setGhost(sub==='mapa');return()=>setGhost(false)},[sub]);
+  const subs=[['rutas','🛣 Rutas'],['cuadre','🧾 Cuadre'],['stats','📈 Estadísticas'],['personal','👥 Conductores/Aux.'],['mapa','🗺 Mapa en vivo']];
+  return <div><div className="row" style={{marginBottom:10}}>{subs.map(([k,l])=><Btn key={k} sm c={sub===k?'var(--mg)':'var(--bl)'} onClick={()=>setSub(k)}>{l}</Btn>)}</div>
+    {sub==='rutas'&&<><Btn c="var(--gr)" onClick={()=>setForm(true)}>＋ Nueva ruta</Btn><div className="grid2" style={{marginTop:12}}>{[...routes].sort((a,b)=>(b.created||0)-(a.created||0)).map(r=>{const l=invoices.filter(i=>i.routeId===r.id),d=l.filter(i=>DONE.includes(i.status)).length;
+      return <div key={r.id} className="glass"><div className="row"><b className="sp">{r.name}</b><Chip c={r.status==='finalizada'?'var(--gr)':r.status==='en_ruta'?'var(--bl)':'#94a3b8'}>{r.status==='en_ruta'?'En ruta':r.status==='finalizada'?'Finalizada':'Asignada'}</Chip></div>
+      <div className="muted" style={{fontSize:13}}>📅 {r.date} · 🚚 {users.find(u=>u.id===r.driverId)?.name||'—'} · 👷 {users.find(u=>u.id===r.auxId)?.name||'—'} {r.vehicle&&'· '+r.vehicle}</div>
+      <Progress v={l.length?d/l.length*100:0} label={`${d}/${l.length} facturas`}/>
+      <div className="row" style={{marginTop:8}}><Btn sm onClick={()=>{setSel(r.id);setSub('cuadre')}}>Ver cuadre</Btn><Btn sm c="#64748b" onClick={()=>{if(confirm('¿Eliminar ruta y sus facturas?')){l.forEach(i=>{DB.del('invoices',i.id);DB.del('geo',i.id)});DB.del('routes',r.id);DB.del('live',r.id)}}}>🗑</Btn></div></div>})}</div>{!routes.length&&<p className="muted">Aún no hay rutas.</p>}</>}
+    {sub==='cuadre'&&<Cuadre sel={sel} setSel={setSel}/>}
+    {sub==='stats'&&<DStats/>}
+    {sub==='personal'&&<Workers roles={['driver','aux']}/>}
+    {sub==='mapa'&&<LiveList/>}
+    {form&&<RouteForm onClose={()=>setForm(false)}/>}</div>;
+}
+function Cuadre({sel,setSel}){
+  const {routes,invoices,geo,users}=useC();const rid=sel||routes[0]?.id;const r=routes.find(x=>x.id===rid);
+  const l=invoices.filter(i=>i.routeId===rid).sort((a,b)=>a.order-b.order);
+  const tot=l.reduce((s,i)=>{const c=collected(i);return{cash:s.cash+c.cash,transfer:s.transfer+c.transfer,credit:s.credit+c.credit,value:s.value+(+i.value||0)}},{cash:0,transfer:0,credit:0,value:0});
+  const ret=l.reduce((s,i)=>s+(i.returned||[]).reduce((a,p)=>a+p.qty*(p.price||0),0),0);
+  const g=id=>geo.find(x=>x.id===id);
+  return <div><select value={rid||''} onChange={e=>setSel(e.target.value)} style={{maxWidth:360}}>{routes.map(x=><option key={x.id} value={x.id}>{x.date} · {x.name}</option>)}</select>
+  {r&&<><div className="grid" style={{margin:'12px 0'}}><Stat c="var(--cy)" v={money(tot.value)} l="Valor facturado"/><Stat c="var(--gr)" v={money(tot.cash)} l="Efectivo recaudado"/><Stat c="var(--bl)" v={money(tot.transfer)} l="Transferencias"/><Stat c="var(--am)" v={money(tot.credit)} l="A crédito"/><Stat c="var(--rd)" v={money(ret)} l="Valor devuelto"/></div>
+  <div className="row" style={{marginBottom:8}}>{Object.entries(IST).map(([k,s])=><Chip key={k} c={s.c}>{s.l}: {l.filter(i=>i.status===k).length}</Chip>)}</div>
+  <div className="tw glass pn"><table><thead><tr><th>Factura</th><th>Cliente</th><th>Dirección</th><th>Pago</th><th>Valor</th><th>Estado</th><th>Motivo / devolución</th><th>Hora</th><th>📍 GPS (solo admin)</th></tr></thead><tbody>
+  {l.map(i=>{const p=g(i.id);return <tr key={i.id} style={i.status==='total'?{background:'#7f1d1d55'}:null}><td><b>{i.number}</b></td><td>{i.client}</td><td>{i.address}</td><td>{PAYS[i.payType]}{i.payType==='mixta'?` (E ${money(i.cash)} / T ${money(i.transfer)})`:''}</td><td>{money(i.value)}</td><td><Chip c={IST[i.status]?.c}>{IST[i.status]?.l}</Chip></td>
+  <td>{i.reason}{i.returned?.length>0&&<div className="muted" style={{fontSize:12}}>↩ {i.returned.map(x=>`${x.name} x${x.qty}`).join(', ')}</div>}</td><td>{i.deliveredAt?dfmt(i.deliveredAt):'—'}</td>
+  <td>{p?<a target="_blank" href={`https://www.google.com/maps?q=${p.lat},${p.lng}`}>{p.lat.toFixed(5)}, {p.lng.toFixed(5)}</a>:'—'}</td></tr>})}</tbody></table></div></>}
+  {!r&&<p className="muted">Sin rutas.</p>}</div>;
+}
+function DStats(){
+  const {routes,invoices,users}=useC();
+  const done=invoices.filter(i=>DONE.includes(i.status)),ok=invoices.filter(i=>i.status==='ok');
+  const aux=users.filter(u=>u.role==='aux').map(u=>{const rs=routes.filter(r=>r.auxId===u.id&&r.status==='finalizada'&&r.startedAt);const ids=routes.filter(r=>r.auxId===u.id).map(r=>r.id);const inv=invoices.filter(i=>ids.includes(i.routeId)&&DONE.includes(i.status));
+    const nov=inv.filter(i=>['novedad','parcial','total','reenvio'].includes(i.status)).length;
+    return{u,rutas:rs.length,avg:rs.length?rs.reduce((s,r)=>s+(r.finishedAt-r.startedAt),0)/rs.length:null,inv:inv.length,nov,rate:inv.length?nov/inv.length:null}});
+  const fast=aux.filter(a=>a.avg!=null).sort((a,b)=>a.avg-b.avg)[0],clean=aux.filter(a=>a.rate!=null).sort((a,b)=>a.rate-b.rate||b.inv-a.inv)[0];
+  return <div><div className="grid"><Stat c="var(--cy)" v={routes.length} l="Rutas"/><Stat c="var(--gr)" v={Math.round(done.length?ok.length/done.length*100:0)+'%'} l="Entregas OK"/><Stat c="var(--bl)" v={done.length+'/'+invoices.length} l="Facturas gestionadas"/><Stat c="var(--mg)" v={money(invoices.reduce((s,i)=>s+collected(i).cash+collected(i).transfer,0))} l="Recaudado (efectivo + transf.)"/>
+    <Stat c="var(--am)" v={fast?fast.u.name:'—'} l={fast?`Auxiliar más rápido · prom. ${fmt(fast.avg)}`:'Auxiliar más rápido en terminar ruta'}/><Stat c="var(--gr)" v={clean?clean.u.name:'—'} l={clean?`Menos novedades · ${Math.round(clean.rate*100)}%`:'Auxiliar con menos novedades'}/></div>
+  <h3>Estado de las facturas</h3><div className="glass pn">{Object.entries(IST).map(([k,s])=><div key={k} style={{marginBottom:8}}><Progress v={invoices.length?invoices.filter(i=>i.status===k).length/invoices.length*100:0} label={s.l+' ('+invoices.filter(i=>i.status===k).length+')'}/></div>)}</div>
+  <h3>Por auxiliar</h3><div className="tw glass pn"><table><thead><tr><th>Auxiliar</th><th>Rutas terminadas</th><th>Tiempo prom. ruta</th><th>Facturas</th><th>Con novedad</th><th>% novedades</th></tr></thead><tbody>{aux.map(a=><tr key={a.u.id}><td>{a.u.name}</td><td>{a.rutas}</td><td>{a.avg!=null?fmt(a.avg):'—'}</td><td>{a.inv}</td><td>{a.nov}</td><td>{a.rate!=null?Math.round(a.rate*100)+'%':'—'}</td></tr>)}</tbody></table></div></div>;
+}
+function LiveList(){
+  const {live,routes,users}=useC();const now=useNow();
+  const l=live.filter(v=>now-v.ts<30*60000);
+  return <div className="glass pn" style={{display:'block',position:'relative',zIndex:3,maxWidth:360}}><b>Vehículos en vivo ({l.length})</b>{l.map(v=><div key={v.id} className="muted" style={{fontSize:13}}>🚚 {v.name} · {v.vehicle||''} · hace {fmt(now-v.ts)}</div>)}<div className="muted" style={{fontSize:12}}>Pulsa el camión en el mapa para ver sus facturas entregadas.</div></div>;
+}
+
+/* ============ Mapa de fondo (admin) ============ */
+function MapBG(){
+  const {live,invoices,routes,geo,users}=useC();
+  const el=useRef(),map=useRef(),layer=useRef(),dref=useRef(),fitted=useRef(false);
+  dref.current={invoices,routes,users};
+  useEffect(()=>{const m=L.map(el.current,{zoomControl:false}).setView([4.65,-74.1],11);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO',maxZoom:19}).addTo(m);L.control.zoom({position:'bottomleft'}).addTo(m);
+    layer.current=L.layerGroup().addTo(m);map.current=m;setTimeout(()=>m.invalidateSize(),300);return()=>m.remove()},[]);
+  useEffect(()=>{const g=layer.current;g.clearLayers();const pts=[];
+    geo.forEach(p=>{const i=dref.current.invoices.find(x=>x.id===p.id);if(!i)return;pts.push([p.lat,p.lng]);L.circleMarker([p.lat,p.lng],{radius:6,color:IST[i.status]?.c,fillColor:IST[i.status]?.c,fillOpacity:.8}).bindPopup(`<b>${esc(i.number)}</b> ${esc(i.client)}<br>${esc(IST[i.status]?.l)}<br>${esc(i.reason||'')}`).addTo(g)});
+    live.filter(v=>Date.now()-v.ts<30*60000).forEach(v=>{pts.push([v.lat,v.lng]);
+      L.marker([v.lat,v.lng],{icon:L.divIcon({html:'<div class="car">🚚</div>',className:'',iconSize:[36,36],iconAnchor:[18,18]})}).bindPopup(()=>{
+        const r=dref.current.routes.find(x=>x.id===v.routeId),l=dref.current.invoices.filter(i=>i.routeId===v.routeId&&DONE.includes(i.status)),all=dref.current.invoices.filter(i=>i.routeId===v.routeId).length;
+        return `<div style="color:#111;min-width:210px"><b>🚚 ${esc(v.name)}</b> ${esc(v.vehicle||'')}<br>Ruta: ${esc(r?.name||'')}<br>Entregadas: <b>${l.length}/${all}</b><hr style="margin:4px 0">${l.map(i=>`• <b>${esc(i.number)}</b> ${esc(i.client)} — <span style="color:${IST[i.status].c}">${IST[i.status].l}</span>`).join('<br>')||'Aún ninguna'}</div>`}).addTo(g)});
+    if(pts.length&&!fitted.current){fitted.current=true;map.current.fitBounds(pts,{padding:[60,60],maxZoom:15})}
+  },[live,geo,invoices]);
+  return <div id="mapbg" ref={el}/>;
+}
+
+/* ============ App Admin general ============ */
+function AdminApp(){
+  const [tab,setTab]=useState('resumen'),[ghost,setGhost]=useState(false);
+  const {rooms,tasks,works,routes,invoices,users}=useC();
+  const tabs=[['resumen','📊 Resumen'],['hab','🛏 Habitaciones'],['aseo','⏱ Tiempos aseo'],['mant','🔧 Mantenimiento'],['ent','🚚 Entregas'],['personal','👥 Personal'],['chat','💬 Chat'],['alertas','🔔 Alertas'],['qr','🔳 QR']];
+  const mapTab=tab==='ent';
+  return <><MapBG/><div className={'adminlayer'+(ghost&&mapTab?' ghost':'')}>
+    <TopBar title="Administrador General" tabs={tabs} tab={tab} setTab={setTab}/>
+    <div className="wrap"><div className="glass" style={{background:'#0f172ae6'}}>
+    {tab==='resumen'&&<><h3>Panorama general</h3><div className="grid"><Stat c="#22c55e" v={rooms.filter(r=>r.status==='disponible').length} l="Habitaciones disponibles"/><Stat c="#ef4444" v={rooms.filter(r=>r.status==='limpieza').length} l="Por limpiar"/><Stat c="#f59e0b" v={rooms.filter(r=>r.status==='proceso').length} l="En limpieza"/><Stat c="#3b82f6" v={rooms.filter(r=>r.status==='ocupada').length} l="Ocupadas"/><Stat c="var(--am)" v={tasks.filter(t=>t.status!=='completada').length} l="Tareas de mantenimiento abiertas"/><Stat c="var(--cy)" v={works.length} l="Obras"/><Stat c="var(--bl)" v={routes.filter(r=>r.status==='en_ruta').length} l="Rutas en curso"/><Stat c="var(--gr)" v={invoices.filter(i=>DONE.includes(i.status)).length+'/'+invoices.length} l="Facturas entregadas"/><Stat c="var(--mg)" v={users.filter(u=>u.role!=='admin').length} l="Personal registrado"/></div></>}
+    {tab==='hab'&&<AdminRooms/>}{tab==='aseo'&&<CleaningStats/>}
+    {tab==='mant'&&<><MaintOverview/><h3 style={{marginTop:16}}>Tareas</h3><TasksView readOnly/><h3 style={{marginTop:16}}>Obras</h3><WorksView readOnly/></>}
+    {tab==='ent'&&<DeliveriesAdmin setGhost={setGhost}/>}
+    {tab==='personal'&&<Workers roles={['aseo','mantenimiento','sistemas','maint_admin','driver','aux']}/>}
+    {tab==='chat'&&<Chat/>}{tab==='alertas'&&<Alerts/>}{tab==='qr'&&<QRSheet/>}
+    </div></div></div>{tab==='ent'&&ghost&&<div style={{position:'relative',zIndex:3,padding:'0 14px'}}><LiveList/></div>}</>;
+}
+
+/* ============ App Entregas (conductor / auxiliar) ============ */
+function DeliveryApp(){
+  const {me,routes,invoices,notify,msg,users}=useC();const [rid,setRid]=useState(''),[dlg,setDlg]=useState(null),[open,setOpen]=useState(null);
+  const mine=routes.filter(r=>r.driverId===me.id||r.auxId===me.id).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const r=mine.find(x=>x.id===rid)||mine.find(x=>x.status!=='finalizada')||mine[0];
+  const list=r?invoices.filter(i=>i.routeId===r.id).sort((a,b)=>a.order-b.order):[];
+  /* GPS en vivo mientras la ruta está en curso */
+  const last=useRef(0);
+  useEffect(()=>{if(!r||r.status!=='en_ruta'||!navigator.geolocation)return;
+    const id=navigator.geolocation.watchPosition(p=>{if(Date.now()-last.current<8000)return;last.current=Date.now();
+      DB.set('live',r.id,{routeId:r.id,name:users.find(u=>u.id===r.driverId)?.name||me.name,vehicle:r.vehicle||'',lat:p.coords.latitude,lng:p.coords.longitude,ts:Date.now()})},()=>{},{enableHighAccuracy:true,maximumAge:5000});
+    return()=>navigator.geolocation.clearWatch(id)},[r?.id,r?.status]);
+  const startRoute=async()=>{unlock();await DB.set('routes',r.id,{status:'en_ruta',startedAt:Date.now()});
+    await DB.many('invoices',list.filter(i=>i.status==='pendiente').map(i=>[i.id,{...i,status:'ruta'}]));
+    const p=await getPos();if(p)DB.set('live',r.id,{routeId:r.id,name:users.find(u=>u.id===r.driverId)?.name||me.name,vehicle:r.vehicle||'',lat:p.lat,lng:p.lng,ts:Date.now()});
+    notify({dept:'entregas',text:`${me.name} inició la ruta ${r.name}`});msg('🚚 Ruta iniciada — GPS activo')};
+  const register=async(i,patch)=>{const p=await getPos();
+    await DB.set('invoices',i.id,{...patch,deliveredAt:Date.now(),deliveredBy:me.id,deliveredByName:me.name});
+    if(p)await DB.set('geo',i.id,{lat:p.lat,lng:p.lng,acc:p.acc,at:Date.now(),routeId:i.routeId,by:me.id});else msg('⚠ No se pudo obtener el GPS (activa la ubicación)');
+    const after=list.map(x=>x.id===i.id?{...x,...patch}:x);
+    if(after.every(x=>DONE.includes(x.status))){await DB.set('routes',r.id,{status:'finalizada',finishedAt:Date.now()});await DB.del('live',r.id);notify({dept:'entregas',text:`✅ Ruta ${r.name} finalizada por ${me.name}`});msg('🏁 Ruta finalizada')}
+    if(patch.status!=='ok')notify({dept:'entregas',text:`${IST[patch.status].l} · Fact. ${i.number} (${i.client}): ${patch.reason||''}`})};
+  const done=list.filter(i=>DONE.includes(i.status)).length;
+  return <><TopBar title="Entregas"/><div className="wrap">
+    {!mine.length&&<div className="glass">No tienes rutas asignadas.</div>}
+    {mine.length>1&&<select value={r?.id} onChange={e=>setRid(e.target.value)} style={{marginBottom:10}}>{mine.map(x=><option key={x.id} value={x.id}>{x.date} · {x.name}</option>)}</select>}
+    {r&&<><div className="glass" style={{marginBottom:12}}><div className="row"><b className="sp" style={{fontSize:18}}>{r.name}</b><Chip c={r.status==='finalizada'?'var(--gr)':r.status==='en_ruta'?'var(--bl)':'#94a3b8'}>{r.status==='finalizada'?'Finalizada':r.status==='en_ruta'?'En ruta':'Por iniciar'}</Chip></div>
+      <div className="muted">{r.date} · {r.vehicle||'—'} · {list.length} facturas · {money(list.reduce((s,i)=>s+(+i.value||0),0))}</div><Progress v={list.length?done/list.length*100:0} label={`${done}/${list.length} gestionadas`}/>
+      {r.status==='asignada'&&<Btn big c="var(--gr)" style={{marginTop:10}} onClick={startRoute}>▶ Iniciar ruta</Btn>}
+      {r.startedAt&&<div className="muted" style={{marginTop:6}}>Inicio: {dfmt(r.startedAt)}{r.finishedAt&&` · Fin: ${dfmt(r.finishedAt)} · Duración ${fmt(r.finishedAt-r.startedAt)}`}</div>}</div>
+    <div className="grid2">{list.map(i=><div key={i.id} className="glass" style={{borderColor:IST[i.status].c,boxShadow:`0 0 14px ${IST[i.status].c}55`,background:i.status==='total'?'#450a0acc':undefined}}>
+      <div className="row"><b className="sp">Fact. {i.number}</b><Chip c={IST[i.status].c}>{IST[i.status].l}</Chip></div>
+      <div><b>{i.client}</b></div><div className="muted">📍 {i.address}</div>
+      <div className="row"><b>{money(i.value)}</b><Chip c="var(--cy)">{PAYS[i.payType]}</Chip>{i.payType==='mixta'&&<span className="muted" style={{fontSize:12}}>Efec. {money(i.cash)} · Transf. {money(i.transfer)}</span>}</div>
+      <a href="#" onClick={e=>{e.preventDefault();setOpen(open===i.id?null:i.id)}}>{open===i.id?'Ocultar':'Ver'} productos ({i.products?.length||0})</a>
+      {open===i.id&&<div className="tw"><table><tbody>{(i.products||[]).map((p,k)=><tr key={k}><td>{p.name}</td><td>x{p.qty}</td><td>{p.price?money(p.price*p.qty):''}</td></tr>)}</tbody></table></div>}
+      {i.reason&&<div style={{color:IST[i.status].c,marginTop:4}}>⚠ {i.reason}{i.returned?.length>0&&' · Devuelve: '+i.returned.map(x=>`${x.name} x${x.qty}`).join(', ')}</div>}
+      {r.status==='en_ruta'&&!['ok'].includes(i.status)&&<div className="row" style={{marginTop:8}}>
+        <Btn c="var(--gr)" onClick={()=>register(i,{status:'ok',reason:'',returned:[]})}>✔ Entregado OK</Btn>
+        <Btn c="var(--am)" onClick={()=>setDlg({i,kind:'novedad'})}>⚠ Novedad</Btn>
+        <Btn c="#c084fc" onClick={()=>setDlg({i,kind:'reenvio'})}>🔁 Reenvío</Btn></div>}</div>)}</div></>}
+  </div>{dlg&&<NoveltyDialog dlg={dlg} onClose={()=>setDlg(null)} onSave={p=>{register(dlg.i,p);setDlg(null)}}/>}</>;
+}
+function NoveltyDialog({dlg,onClose,onSave}){
+  const {i,kind}=dlg;const [t,setT]=useState(kind==='reenvio'?'reenvio':'novedad'),[why,setWhy]=useState(''),[q,setQ]=useState({});
+  const motivos=['Cliente ausente','Local cerrado','Producto dañado','Producto errado','Cliente rechaza pedido','Dirección incorrecta','Sin dinero / sin pago','Otro'];
+  const [m,setM]=useState(motivos[0]);
+  const save=()=>{const reason=(m==='Otro'||!m?'':m)+(why?(m&&m!=='Otro'?' — ':'')+why:'');if(!reason.trim())return alert('Indica el motivo');
+    let returned=[];if(t==='parcial'){returned=(i.products||[]).map((p,k)=>({name:p.name,qty:+q[k]||0,price:p.price||0})).filter(x=>x.qty>0);if(!returned.length)return alert('Indica qué productos devuelve')}
+    if(t==='total')returned=(i.products||[]).map(p=>({name:p.name,qty:p.qty,price:p.price||0}));
+    onSave({status:t,reason,returned})};
+  return <Modal title={`Factura ${i.number} — ${i.client}`} onClose={onClose}>
+    {kind==='novedad'&&<div className="row">{[['novedad','Novedad','var(--am)'],['parcial','Devolución parcial','#fb923c'],['total','Devolución total','var(--rd)']].map(([k,l,c])=><Btn key={k} c={t===k?c:'#475569'} onClick={()=>setT(k)}>{t===k?'● ':''}{l}</Btn>)}</div>}
+    <F l="¿Por qué se presentó?"><select value={m} onChange={e=>setM(e.target.value)}>{motivos.map(x=><option key={x}>{x}</option>)}</select></F>
+    <F l="Detalle (opcional)"><textarea rows={2} value={why} onChange={e=>setWhy(e.target.value)}/></F>
+    {t==='parcial'&&<><h3>Productos devueltos</h3>{(i.products||[]).map((p,k)=><div key={k} className="row"><span className="sp">{p.name} (de {p.qty})</span><input type="number" min="0" max={p.qty} style={{width:90}} value={q[k]||''} onChange={e=>setQ({...q,[k]:Math.min(p.qty,+e.target.value)})}/></div>)}</>}
+    {t==='total'&&<p style={{color:'var(--rd)'}}>Se registrará la devolución de TODOS los productos.</p>}
+    <p className="muted" style={{fontSize:12}}>📍 Se guardará la ubicación GPS de forma oculta (solo la ve el administrador).</p>
+    <div className="row"><Btn c={IST[t].c} onClick={save}>Registrar</Btn></div></Modal>;
+}
+
+/* ============ PWA: manifest + service worker ============ */
+(function pwa(){
+  try{
+    const mk=s=>{const c=document.createElement('canvas');c.width=c.height=s;const x=c.getContext('2d');x.fillStyle='#070b14';x.fillRect(0,0,s,s);x.strokeStyle='#22d3ee';x.lineWidth=s*.04;x.strokeRect(s*.06,s*.06,s*.88,s*.88);x.font=s*.55+'px serif';x.textAlign='center';x.textBaseline='middle';x.fillText('🏨',s/2,s*.54);return c.toDataURL('image/png')};
+    const base=location.href.split('#')[0];
+    const man={name:'Control de Actividades',short_name:'Actividades',start_url:base,scope:base.replace(/[^/]*$/,''),display:'standalone',background_color:'#070b14',theme_color:'#070b14',icons:[{src:mk(192),sizes:'192x192',type:'image/png',purpose:'any'},{src:mk(512),sizes:'512x512',type:'image/png',purpose:'any'}]};
+    const l=document.createElement('link');l.rel='manifest';l.href=URL.createObjectURL(new Blob([JSON.stringify(man)],{type:'application/manifest+json'}));document.head.appendChild(l);
+  }catch(e){}
+  if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+})();
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
